@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongodb:
+    image: mongo:7
+    container_name: sima-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: sima-scraper
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - sima-network
+
+  # Main API Service
+  main-api:
+    build:
+      context: ./main-api
+      dockerfile: Dockerfile
+    container_name: sima-main-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/sima-scraper
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    depends_on:
+      - mongodb
+    networks:
+      - sima-network
+    volumes:
+      - ./main-api:/app
+      - /app/node_modules
+
+  # Scraping Service
+  scraping-service:
+    build:
+      context: ./scraping-service
+      dockerfile: Dockerfile
+    container_name: sima-scraping-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - SCRAPING_PORT=3001
+      - SIMA_BASE_URL=https://sima.unicartagena.edu.co
+    networks:
+      - sima-network
+    volumes:
+      - ./scraping-service:/app
+      - /app/node_modules
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: sima-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - GATEWAY_PORT=8080
+      - MAIN_API_URL=http://main-api:3000
+      - SCRAPING_SERVICE_URL=http://scraping-service:3001
+      - CORS_ORIGIN=*
+      - RATE_LIMIT_MAX=100
+    depends_on:
+      - main-api
+      - scraping-service
+    networks:
+      - sima-network
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+
+networks:
+  sima-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
