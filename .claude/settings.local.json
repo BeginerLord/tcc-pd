@@ -12,7 +12,8 @@
       "Bash(docker system prune:*)",
       "Bash(git init:*)",
       "Bash(git config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npm run typecheck:*)"
     ],
     "deny": [],
     "ask": []
