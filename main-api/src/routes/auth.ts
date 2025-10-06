@@ -200,15 +200,18 @@ export async function authRoutes(fastify: FastifyInstance) {
         await authService.validateSession(activeSession.cookies) : false;
 
       reply.send({
+        valid: true,
         success: true,
         user: {
           id: (user._id as any),
-          username: user.username
+          username: user.username,
+          cookies: activeSession?.cookies || []
         },
         sessionValid: isSessionValid
       });
     } catch (error) {
       reply.status(401).send({
+        valid: false,
         success: false,
         error: 'Invalid token'
       });

@@ -1,0 +1,584 @@
+{
+	"info": {
+		"_postman_id": "sima-scraper-2025",
+		"name": "SIMA Scraper - API Collection",
+		"description": "Colección completa de endpoints para el SIMA Scraper API\nIncluye autenticación, cursos, horarios y scraping directo.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "sima-scraper"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"usuario_test\",\n  \"password\": \"password123\",\n  \"simaUsername\": \"usuario.sima\",\n  \"simaPassword\": \"password_sima\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registra un nuevo usuario en el sistema con sus credenciales SIMA"
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"usuario_test\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Autentica un usuario y retorna JWT token"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticación y registro de usuarios"
+		},
+		{
+			"name": "Courses",
+			"item": [
+				{
+					"name": "Get Courses (from DB)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses"
+							]
+						},
+						"description": "Obtiene la lista de cursos almacenados en la base de datos"
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Courses from SIMA",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/sync",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"sync"
+							]
+						},
+						"description": "Sincroniza cursos desde SIMA y los guarda en la BD"
+					},
+					"response": []
+				}
+			],
+			"description": "Gestión de cursos del usuario"
+		},
+		{
+			"name": "Schedule",
+			"item": [
+				{
+					"name": "Get Day Schedule",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/schedule/day",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"schedule",
+								"day"
+							]
+						},
+						"description": "Obtiene el horario del día actual"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Week Schedule",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/schedule/week",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"schedule",
+								"week"
+							]
+						},
+						"description": "Obtiene el horario de la semana actual"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Month Schedule",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/schedule/month",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"schedule",
+								"month"
+							]
+						},
+						"description": "Obtiene el horario del mes actual"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Upcoming Events",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/schedule/upcoming",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"schedule",
+								"upcoming"
+							]
+						},
+						"description": "Obtiene eventos próximos de todos los cursos"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Upcoming Events by Course",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/schedule/upcoming/:courseId",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"schedule",
+								"upcoming",
+								":courseId"
+							],
+							"variable": [
+								{
+									"key": "courseId",
+									"value": "123",
+									"description": "ID del curso"
+								}
+							]
+						},
+						"description": "Obtiene eventos próximos de un curso específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Schedule History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/schedule/history/:days",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"schedule",
+								"history",
+								":days"
+							],
+							"variable": [
+								{
+									"key": "days",
+									"value": "7",
+									"description": "Número de días de historial"
+								}
+							]
+						},
+						"description": "Obtiene el historial de horarios de los últimos N días"
+					},
+					"response": []
+				},
+				{
+					"name": "Clear Schedule Cache",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{JWT_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/schedule/cache",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"schedule",
+								"cache"
+							]
+						},
+						"description": "Limpia el caché de horarios del usuario"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestión de horarios y calendario"
+		},
+		{
+			"name": "Scraping Service (Direct)",
+			"item": [
+				{
+					"name": "Scrape Courses",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cookies\": [\n    \"MoodleSession=your_session_cookie\",\n    \"MOODLEID1_=your_moodle_id\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{SCRAPING_URL}}/api/scraping/courses",
+							"host": [
+								"{{SCRAPING_URL}}"
+							],
+							"path": [
+								"api",
+								"scraping",
+								"courses"
+							]
+						},
+						"description": "Llama directamente al scraping service para obtener cursos (sin BD)"
+					},
+					"response": []
+				},
+				{
+					"name": "Scrape Schedule - Day",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cookies\": [\n    \"MoodleSession=your_session_cookie\",\n    \"MOODLEID1_=your_moodle_id\"\n  ],\n  \"courseId\": \"123\",\n  \"date\": \"2025-10-06\"\n}"
+						},
+						"url": {
+							"raw": "{{SCRAPING_URL}}/api/scraping/schedule/day",
+							"host": [
+								"{{SCRAPING_URL}}"
+							],
+							"path": [
+								"api",
+								"scraping",
+								"schedule",
+								"day"
+							]
+						},
+						"description": "Obtiene horario del día con fechas de apertura/cierre de actividades"
+					},
+					"response": []
+				},
+				{
+					"name": "Scrape Schedule - Week",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cookies\": [\n    \"MoodleSession=your_session_cookie\",\n    \"MOODLEID1_=your_moodle_id\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{SCRAPING_URL}}/api/scraping/schedule/week",
+							"host": [
+								"{{SCRAPING_URL}}"
+							],
+							"path": [
+								"api",
+								"scraping",
+								"schedule",
+								"week"
+							]
+						},
+						"description": "Obtiene horario semanal con fechas de actividades"
+					},
+					"response": []
+				},
+				{
+					"name": "Scrape Schedule - Month",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cookies\": [\n    \"MoodleSession=your_session_cookie\",\n    \"MOODLEID1_=your_moodle_id\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{SCRAPING_URL}}/api/scraping/schedule/month",
+							"host": [
+								"{{SCRAPING_URL}}"
+							],
+							"path": [
+								"api",
+								"scraping",
+								"schedule",
+								"month"
+							]
+						},
+						"description": "Obtiene horario mensual con fechas de actividades"
+					},
+					"response": []
+				},
+				{
+					"name": "Scrape Schedule - Upcoming",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cookies\": [\n    \"MoodleSession=your_session_cookie\",\n    \"MOODLEID1_=your_moodle_id\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{SCRAPING_URL}}/api/scraping/schedule/upcoming",
+							"host": [
+								"{{SCRAPING_URL}}"
+							],
+							"path": [
+								"api",
+								"scraping",
+								"schedule",
+								"upcoming"
+							]
+						},
+						"description": "Obtiene eventos próximos con fechas de apertura/cierre"
+					},
+					"response": []
+				},
+				{
+					"name": "Scrape Upcoming by Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cookies\": [\n    \"MoodleSession=your_session_cookie\",\n    \"MOODLEID1_=your_moodle_id\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{SCRAPING_URL}}/api/scraping/upcoming/:courseId",
+							"host": [
+								"{{SCRAPING_URL}}"
+							],
+							"path": [
+								"api",
+								"scraping",
+								"upcoming",
+								":courseId"
+							],
+							"variable": [
+								{
+									"key": "courseId",
+									"value": "108313",
+									"description": "ID del curso"
+								}
+							]
+						},
+						"description": "Obtiene eventos próximos de un curso específico vía API AJAX"
+					},
+					"response": []
+				}
+			],
+			"description": "Llamadas directas al servicio de scraping (puerto 3001)"
+		},
+		{
+			"name": "Health Checks",
+			"item": [
+				{
+					"name": "Gateway Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/health",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Verifica el estado del API Gateway"
+					},
+					"response": []
+				},
+				{
+					"name": "Main API Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"health"
+							]
+						},
+						"description": "Verifica el estado del Main API"
+					},
+					"response": []
+				},
+				{
+					"name": "Scraping Service Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{SCRAPING_URL}}/api/scraping/health",
+							"host": [
+								"{{SCRAPING_URL}}"
+							],
+							"path": [
+								"api",
+								"scraping",
+								"health"
+							]
+						},
+						"description": "Verifica el estado del Scraping Service"
+					},
+					"response": []
+				}
+			],
+			"description": "Verificación de salud de los servicios"
+		}
+	]
+}

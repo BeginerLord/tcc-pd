@@ -1,0 +1,252 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║            🎉 SIMA SCRAPER - ARQUITECTURA MODULAR COMPLETADA 🎉         ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+📦 ARCHIVOS CREADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 Postman:
+   ├── SIMA_Scraper_Postman_Collection.json  📮 24 endpoints listos
+   └── Variables pre-configuradas ✅
+
+
+🏗️ Arquitectura Modular (scraping-service/):
+   ├── ARCHITECTURE.md                  📐 Arquitectura detallada
+   ├── src/services/
+   │   ├── scraperService.ts           🎯 Orquestador principal
+   │   ├── modules/                    📦 Servicios modulares
+   │   │   ├── sessionService.ts       🔑 Gestión de sesiones
+   │   │   ├── coursesService.ts       📚 Obtención de cursos
+   │   │   ├── calendarService.ts      📅 Eventos del calendario
+   │   │   ├── activitiesService.ts    ✨ Fechas apertura/cierre
+   │   │   └── index.ts
+   │   ├── helpers/                    🛠️ Utilidades
+   │   │   ├── cookieParser.ts         🍪 Parser de cookies
+   │   │   ├── timeParser.ts           ⏰ Conversión de tiempos
+   │   │   ├── eventTypeDetector.ts    🔍 Detección de tipos
+   │   │   └── index.ts
+   │   └── README.md                   📖 Docs de servicios
+
+⚙️ Configuración:
+   └── .env                            ✅ Creado con valores por defecto
+
+
+🚀 INICIO RÁPIDO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  Levantar Docker:
+   docker-compose up -d --build
+
+2️⃣  Verificar:
+   http://localhost:8080/api/health  ✅
+
+3️⃣  Importar en Postman:
+   SIMA_Scraper_Postman_Collection.json
+
+4️⃣  Endpoints principales:
+   POST /api/auth/register           → Registrar usuario
+   POST /api/auth/login              → Login (JWT auto-guardado)
+   POST /api/courses/sync            → Sincronizar cursos
+   GET  /api/schedule/week           → Horario CON fechas ⭐
+
+
+🎯 FUNCIONALIDAD PRINCIPAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ EXTRACCIÓN DE FECHAS DE APERTURA Y CIERRE ✨
+
+El sistema ahora extrae automáticamente:
+  • Fecha de apertura de actividades
+  • Fecha de cierre de actividades
+  • Para asignaciones, evaluaciones, tareas, etc.
+
+Ejemplo de respuesta:
+{
+  "activities": [
+    {
+      "title": "Protocolo individual de la unidad 2",
+      "activityDates": {
+        "apertura": "lunes, 18 de agosto de 2025, 15:23",
+        "cierre": "sábado, 11 de octubre de 2025, 15:23"
+      }
+    }
+  ]
+}
+
+
+🏗️ ARQUITECTURA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                  Cliente (Postman / Frontend)
+                            ↓
+                   API Gateway :8080  ⭐
+                 (Punto de entrada único)
+                            ↓
+           ┌────────────────┴────────────────┐
+           ↓                                 ↓
+    Main API :3000                   Scraping Service :3001
+           ↓                                 ↓
+    MongoDB :27017              Módulos Especializados
+                                  • SessionService
+                                  • CoursesService
+                                  • CalendarService
+                                  • ActivitiesService
+                                  • Helpers
+
+
+✅ VENTAJAS DE LA ARQUITECTURA MODULAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Separación de responsabilidades
+✓ Código limpio y mantenible
+✓ Fácil de testear (módulos independientes)
+✓ Escalable (agregar nuevos servicios sin afectar existentes)
+✓ Helpers reutilizables
+✓ Documentación completa
+✓ Retrocompatible (mismo API público)
+
+
+📊 ENDPOINTS DISPONIBLES (24 total)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 Authentication (2)
+   POST   /api/auth/register
+   POST   /api/auth/login
+
+📚 Courses (2)
+   GET    /api/courses
+   POST   /api/courses/sync
+
+📅 Schedule (7)
+   GET    /api/schedule/day
+   GET    /api/schedule/week
+   GET    /api/schedule/month
+   GET    /api/schedule/upcoming
+   GET    /api/schedule/upcoming/:courseId
+   GET    /api/schedule/history/:days
+   DELETE /api/schedule/cache
+
+🔍 Scraping Direct (6)
+   POST   /api/scraping/courses
+   POST   /api/scraping/schedule/day
+   POST   /api/scraping/schedule/week
+   POST   /api/scraping/schedule/month
+   POST   /api/scraping/schedule/upcoming
+   POST   /api/scraping/upcoming/:courseId
+
+🏥 Health Checks (3)
+   GET    /api/health
+   GET    /health (Main API)
+   GET    /api/scraping/health
+
+
+🛠️ COMANDOS ÚTILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Docker:
+  docker-compose up -d --build       → Iniciar todo
+  docker-compose ps                  → Ver estado
+  docker-compose logs -f             → Ver logs
+  docker-compose restart             → Reiniciar
+  docker-compose down                → Detener todo
+
+Testing:
+  test-endpoints.bat                 → Tests automáticos (Windows)
+  ./test-endpoints.sh                → Tests automáticos (Linux/Mac)
+
+Build (sin Docker):
+  cd scraping-service
+  npm install
+  npm run build
+  npm run dev
+
+
+📖 DOCUMENTACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Lee estos archivos en orden:
+
+1. EMPEZAR_AQUI.md                    → Inicio rápido (5 minutos)
+2. SETUP_COMPLETO.md                  → Guía paso a paso completa
+3. POSTMAN_SETUP.md                   → Cómo usar Postman
+4. DOCKER_QUICKSTART.md               → Todo sobre Docker
+5. scraping-service/ARCHITECTURE.md   → Arquitectura modular
+6. scraping-service/src/services/README.md  → Módulos detallados
+
+
+🎓 ¿CÓMO FUNCIONA LA EXTRACCIÓN DE FECHAS?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Usuario hace: GET /api/schedule/week
+
+2. CalendarService obtiene eventos del calendario
+
+3. ActivitiesService detecta actividades tipo "assignment"
+
+4. Para cada assignment:
+   → Construye URL: .../view.php?id=X&action=editsubmission
+   → Hace petición HTTP con cookies del usuario
+   → Parsea HTML buscando [data-region="activity-dates"]
+   → Extrae texto de "Apertura:" y "Cierre:"
+
+5. Retorna eventos enriquecidos con activityDates
+
+Flujo visual:
+  Cliente → API Gateway → Main API → Scraping Service
+                                           ↓
+                      SessionService → Obtiene sesskey
+                      CalendarService → Obtiene eventos
+                      ActivitiesService → Extrae fechas
+                                           ↓
+                                        SIMA
+
+
+🔧 SOLUCIÓN DE PROBLEMAS COMUNES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ "Connection refused"
+   → docker-compose ps
+   → docker-compose logs api-gateway
+   → docker-compose restart
+
+❌ "Invalid credentials"
+   → Verifica credenciales de SIMA al registrar
+
+❌ "No working URL found"
+   → Cookies expiradas, re-autenticarse
+
+❌ No veo fechas de apertura/cierre
+   → Verificar que la actividad tenga fechas en SIMA
+   → Solo funciona para tipo "assignment"
+
+❌ Puerto ocupado
+   → Cambiar puerto en docker-compose.yml
+   → O detener proceso: taskkill /PID X /F
+
+
+✅ VERIFICACIÓN FINAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Antes de usar, verificar:
+
+☑ Docker Desktop corriendo
+☑ Puertos 8080, 3000, 3001, 27017 libres
+☑ .env existe con JWT_SECRET y ENCRYPTION_KEY
+☑ docker-compose ps muestra todos "Up"
+☑ http://localhost:8080/api/health responde "ok"
+☑ Postman collection importada
+☑ Variables de Postman configuradas:
+  • BASE_URL = http://localhost:8080
+  • SCRAPING_URL = http://localhost:3001
+
+
+🚀 ¡TODO LISTO!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. docker-compose up -d --build
+2. Importar colección en Postman
+
+
+
