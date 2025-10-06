@@ -127,11 +127,20 @@ export class ActivitiesService {
   /**
    * Convierte eventos del calendario en datos de horario estructurados
    * @param events Array de eventos del calendario
+   * @param courses Array de cursos del usuario (opcional, para enriquecer datos)
    * @returns Array de ScheduleData agrupados por fecha
    */
-  convertEventsToSchedule(events: CalendarEvent[]): ScheduleData[] {
+  convertEventsToSchedule(events: CalendarEvent[], courses?: any[]): ScheduleData[] {
     const scheduleData: ScheduleData[] = [];
     const eventsGroupedByDate = new Map<string, Activity[]>();
+
+    // Crear mapa de cursos por ID para búsqueda rápida
+    const coursesMap = new Map<string, any>();
+    if (courses) {
+      for (const course of courses) {
+        coursesMap.set(course.id, course);
+      }
+    }
 
     for (const event of events) {
       // Si el evento tiene metadata con fecha, usarla; sino usar el timestamp
@@ -156,6 +165,17 @@ export class ActivitiesService {
         eventsGroupedByDate.set(dateKey, []);
       }
 
+      // Enriquecer información del curso si solo tenemos el ID
+      let courseInfo = event.course;
+      if (courseInfo && courseInfo.id && !courseInfo.fullname && coursesMap.has(courseInfo.id)) {
+        const fullCourseData = coursesMap.get(courseInfo.id);
+        courseInfo = {
+          id: courseInfo.id,
+          fullname: fullCourseData.fullname || fullCourseData.name,
+          shortname: fullCourseData.shortname || fullCourseData.fullname?.split('-').pop()?.trim() || ''
+        };
+      }
+
       const activity: Activity = {
         id: event.id,
         title: event.name,
@@ -169,7 +189,7 @@ export class ActivitiesService {
         location: event.location,
         type: event.eventtype,
         activityDates: event.activityDates,
-        course: event.course,
+        course: courseInfo,
         url: event.url,
         metadata: event.metadata
       };

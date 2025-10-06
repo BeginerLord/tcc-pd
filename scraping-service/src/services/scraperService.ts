@@ -138,8 +138,16 @@ export class ScraperService {
       // Enriquecer con fechas de actividades
       events = await this.activitiesService.enhanceEventsWithActivityDates(cookies, events);
 
-      // Convertir eventos a formato de horario
-      return this.activitiesService.convertEventsToSchedule(events);
+      // Obtener lista de cursos para enriquecer eventos que solo tienen courseId
+      let courses: CourseInfo[] = [];
+      try {
+        courses = await this.coursesService.getUserCourses(cookies);
+      } catch (error) {
+        console.warn('Could not fetch courses for enrichment:', error);
+      }
+
+      // Convertir eventos a formato de horario, enriqueciendo con datos de cursos
+      return this.activitiesService.convertEventsToSchedule(events, courses);
     } catch (error) {
       throw new Error(`Failed to scrape schedule: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }

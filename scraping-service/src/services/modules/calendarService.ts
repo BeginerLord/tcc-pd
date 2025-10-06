@@ -612,14 +612,49 @@ export class CalendarService {
 
       console.log(`Found event: ${eventName} (ID: ${eventId})`);
 
+      // Extraer timestamp y course ID de los enlaces en la barra lateral del calendario
+      // Buscar en el mini-calendario el enlace correspondiente a este evento
+      let timestart = 0;
+      let courseId = '';
+
+      // Buscar en toda la página el enlace del mini calendario que coincida con este evento
+      const miniCalLink = $(`a[data-event-id="${eventId}"][href*="time="]`);
+      if (miniCalLink.length > 0) {
+        const href = miniCalLink.attr('href');
+        if (href) {
+          // Extraer timestamp: ...time=1760214180...
+          const timeMatch = href.match(/time=(\d+)/);
+          if (timeMatch) {
+            timestart = parseInt(timeMatch[1]);
+          }
+          // Extraer course ID: ...course=2174...
+          const courseMatch = href.match(/course=(\d+)/);
+          if (courseMatch) {
+            courseId = courseMatch[1];
+          }
+        }
+      }
+
+      // Si no encontramos timestamp, intentar construirlo desde la fecha solicitada
+      if (timestart === 0 && date) {
+        // Usar la fecha solicitada + medianoche
+        const requestedDate = new Date(date);
+        timestart = Math.floor(requestedDate.getTime() / 1000);
+      }
+
       events.push({
         id: eventId,
         name: eventName,
         description: eventTitle || '',
-        timestart: 0, // Timestamp no disponible en vista mensual
+        timestart: timestart,
         timeduration: 0,
         eventtype: eventComponent?.replace('mod_', '') || eventType || 'activity',
         url: eventUrl || '',
+        course: courseId ? {
+          id: courseId,
+          fullname: '', // No disponible en vista mensual
+          shortname: ''
+        } : undefined,
         metadata: {
           component: eventComponent,
           eventtype: eventType

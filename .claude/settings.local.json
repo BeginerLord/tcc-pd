@@ -21,7 +21,9 @@
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
       "Bash(mongosh:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git commit:*)",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []
