@@ -15,7 +15,13 @@
       "Bash(git add:*)",
       "Bash(npm run typecheck:*)",
       "Bash(docker-compose:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm start)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(mongosh:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

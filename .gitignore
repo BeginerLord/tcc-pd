@@ -43,3 +43,5 @@ temp/
 # Embedded repositories (legacy)
 Srapping/
 main-api/Srapping/
+nul
+scraping-service/debug-day-view.html

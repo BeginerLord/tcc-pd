@@ -22,6 +22,16 @@ export interface CalendarEvent {
     apertura?: string;
     cierre?: string;
   };
+  metadata?: {
+    date?: string;
+    time?: string;
+    actionType?: string;
+    actionButton?: string;
+    actionButtonUrl?: string;
+    activityIcon?: string;
+    component?: string;
+    eventtype?: string;
+  };
 }
 
 export interface Activity {
@@ -35,6 +45,20 @@ export interface Activity {
   activityDates?: {
     apertura?: string;
     cierre?: string;
+  };
+  course?: {
+    id: string;
+    fullname: string;
+    shortname: string;
+  };
+  url?: string;
+  metadata?: {
+    date?: string;
+    time?: string;
+    actionType?: string;
+    actionButton?: string;
+    actionButtonUrl?: string;
+    activityIcon?: string;
   };
 }
 

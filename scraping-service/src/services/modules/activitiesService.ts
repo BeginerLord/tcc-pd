@@ -93,10 +93,23 @@ export class ActivitiesService {
     for (const event of events) {
       const enhancedEvent = { ...event };
 
-      // Solo obtener fechas para asignaciones y evaluaciones
-      if (event.url && (event.eventtype === 'assignment' || event.name.toLowerCase().includes('evaluación'))) {
+      // Intentar obtener fechas de la URL del botón de acción si está disponible
+      let urlToFetch = event.url;
+      if (event.metadata?.actionButtonUrl) {
+        urlToFetch = event.metadata.actionButtonUrl;
+      }
+
+      // Obtener fechas para tareas, cuestionarios y otros tipos de actividades
+      if (urlToFetch && (
+        event.eventtype === 'assign' ||
+        event.eventtype === 'assignment' ||
+        event.eventtype === 'quiz' ||
+        event.name.toLowerCase().includes('evaluación') ||
+        event.metadata?.actionType?.toLowerCase().includes('tarea') ||
+        event.metadata?.actionType?.toLowerCase().includes('cuestionario')
+      )) {
         try {
-          const activityDates = await this.getActivityDates(cookies, event.url);
+          const activityDates = await this.getActivityDates(cookies, urlToFetch);
           if (activityDates.apertura || activityDates.cierre) {
             enhancedEvent.activityDates = activityDates;
           }
@@ -121,8 +134,23 @@ export class ActivitiesService {
     const eventsGroupedByDate = new Map<string, Activity[]>();
 
     for (const event of events) {
-      const eventDate = new Date(event.timestart * 1000);
-      const dateKey = eventDate.toISOString().split('T')[0];
+      // Si el evento tiene metadata con fecha, usarla; sino usar el timestamp
+      let dateKey: string;
+      let startTime: string;
+
+      if (event.metadata?.date && event.metadata?.time) {
+        // Usar la fecha del metadata (más precisa para vista de día)
+        dateKey = this.parseDateToISO(event.metadata.date);
+        startTime = event.metadata.time;
+      } else {
+        // Usar el timestamp
+        const eventDate = new Date(event.timestart * 1000);
+        dateKey = eventDate.toISOString().split('T')[0];
+        startTime = eventDate.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
 
       if (!eventsGroupedByDate.has(dateKey)) {
         eventsGroupedByDate.set(dateKey, []);
@@ -131,19 +159,19 @@ export class ActivitiesService {
       const activity: Activity = {
         id: event.id,
         title: event.name,
-        startTime: eventDate.toLocaleTimeString('es-ES', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
+        startTime: startTime,
         endTime: event.timeduration > 0 ?
           new Date((event.timestart + event.timeduration) * 1000).toLocaleTimeString('es-ES', {
             hour: '2-digit',
             minute: '2-digit'
-          }) : '',
+          }) : undefined,
         description: event.description,
         location: event.location,
         type: event.eventtype,
-        activityDates: event.activityDates
+        activityDates: event.activityDates,
+        course: event.course,
+        url: event.url,
+        metadata: event.metadata
       };
 
       eventsGroupedByDate.get(dateKey)!.push(activity);
@@ -158,5 +186,30 @@ export class ActivitiesService {
     }
 
     return scheduleData.sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  /**
+   * Convierte una fecha en formato español a ISO (YYYY-MM-DD)
+   * @param dateStr Fecha en formato español (ej: "sábado, 11 de octubre de 2025")
+   * @returns Fecha en formato ISO
+   */
+  private parseDateToISO(dateStr: string): string {
+    const months: { [key: string]: string } = {
+      'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+      'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
+      'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
+    };
+
+    // Formato: "sábado, 11 de octubre de 2025"
+    const match = dateStr.match(/(\d+)\s+de\s+(\w+)\s+de\s+(\d+)/);
+    if (match) {
+      const day = match[1].padStart(2, '0');
+      const month = months[match[2].toLowerCase()] || '01';
+      const year = match[3];
+      return `${year}-${month}-${day}`;
+    }
+
+    // Fallback: usar fecha actual
+    return new Date().toISOString().split('T')[0];
   }
 }

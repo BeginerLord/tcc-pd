@@ -95,6 +95,15 @@ export class ScraperService {
   }
 
   /**
+   * Valida si las cookies de sesión son válidas
+   * @param cookies Array de cookies del usuario
+   * @returns true si la sesión es válida
+   */
+  async validateSession(cookies: string[]): Promise<boolean> {
+    return this.sessionService.validateSession(cookies);
+  }
+
+  /**
    * Obtiene el horario/calendario estructurado por período
    * @param cookies Array de cookies del usuario
    * @param period Período (day, week, month, upcoming)
@@ -109,6 +118,12 @@ export class ScraperService {
     date?: string
   ): Promise<ScheduleData[]> {
     try {
+      // Validar sesión antes de hacer scraping
+      const isSessionValid = await this.sessionService.validateSession(cookies);
+      if (!isSessionValid) {
+        throw new Error('Session expired or invalid cookies. Please login again.');
+      }
+
       // Convertir 'week' a 'month' para la vista
       const view = period === 'week' ? 'month' : period;
 

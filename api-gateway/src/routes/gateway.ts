@@ -177,11 +177,19 @@ export async function gatewayRoutes(fastify: FastifyInstance) {
   // ============================================
 
   // Obtener horario por período
-  fastify.get<{ Params: { period: string } }>('/schedule/:period',
+  // Query params: ?date=YYYY-MM-DD (optional, defaults to today)
+  fastify.get<{
+    Params: { period: string },
+    Querystring: { date?: string, courseId?: string }
+  }>('/schedule/:period',
     { preHandler: authMiddleware },
-    async (request: FastifyRequest<{ Params: { period: string } }>, reply: FastifyReply) => {
+    async (request: FastifyRequest<{
+      Params: { period: string },
+      Querystring: { date?: string, courseId?: string }
+    }>, reply: FastifyReply) => {
       try {
         const { period } = request.params;
+        const { date, courseId } = request.query;
         const authHeader = request.headers.authorization;
 
         // 1. Obtener cookies del usuario
@@ -201,11 +209,15 @@ export async function gatewayRoutes(fastify: FastifyInstance) {
         }
 
         // 2. Obtener horario desde scraping-service
+        const requestBody: any = { cookies: userInfo.user.cookies };
+        if (date) requestBody.date = date;
+        if (courseId) requestBody.courseId = courseId;
+
         const schedule = await serviceProxy.proxyRequest(
           'scraping',
           `/api/scraping/schedule/${period}`,
           'POST',
-          { cookies: userInfo.user.cookies }
+          requestBody
         );
 
         return reply.send(schedule);

@@ -310,11 +310,22 @@ export class AuthService {
           'Cookie': this.parseCookies(cookies),
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
         },
-        maxRedirects: 15,
+        maxRedirects: 0, // Don't follow redirects
         validateStatus: (status) => status < 400 || status === 302 || status === 303
       });
 
       console.log('📥 ValidateSession - got response successfully');
+
+      // If we get a redirect to login, the session is invalid
+      if (response.status === 302 || response.status === 303) {
+        const location = response.headers.location || '';
+        console.log('🔄 Got redirect to:', location);
+
+        if (location.includes('/login/')) {
+          console.log('❌ Session invalid - redirected to login page');
+          return false;
+        }
+      }
 
       console.log('✅ Session validation - URL:', response.request?.res?.responseUrl || response.config.url);
       console.log('✅ Session validation - Status:', response.status);

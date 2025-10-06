@@ -25,6 +25,8 @@ export async function authRoutes(fastify: FastifyInstance) {
     try {
       const { username, password, simaUsername, simaPassword } = request.body;
 
+      console.log('📝 Registration attempt:', { username, simaUsername, hasPassword: !!password, hasSimaPassword: !!simaPassword });
+
       if (!username || !password || !simaUsername || !simaPassword) {
         return reply.status(400).send({
           success: false,
@@ -33,6 +35,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       }
 
       const existingUser = await User.findOne({ username });
+      console.log('🔍 Existing user check:', { username, found: !!existingUser });
+
       if (existingUser) {
         return reply.status(409).send({
           success: false,
@@ -87,6 +91,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
       });
     } catch (error) {
+      console.error('❌ Registration route error:', error);
       reply.status(500).send({
         success: false,
         error: error instanceof Error ? error.message : 'Registration failed'
@@ -126,15 +131,34 @@ export async function authRoutes(fastify: FastifyInstance) {
       );
 
       if (!activeSession || !(await authService.validateSession(activeSession.cookies))) {
+        console.log('🔄 Session invalid or expired, attempting re-login to SIMA...');
+
+        let decryptedPassword: string;
+        try {
+          decryptedPassword = decrypt(user.simaCredentials.encryptedPassword);
+        } catch (decryptError) {
+          return reply.status(401).send({
+            success: false,
+            error: 'Session expired and stored credentials are invalid. Please register again.'
+          });
+        }
+
         const simaLoginResult = await authService.login({
           username: user.simaCredentials.username,
-          password: decrypt(user.simaCredentials.encryptedPassword)
+          password: decryptedPassword
+        });
+
+        console.log('📊 SIMA re-login result:', {
+          success: simaLoginResult.success,
+          error: simaLoginResult.error,
+          hasCookies: !!simaLoginResult.cookies,
+          cookiesCount: simaLoginResult.cookies?.length || 0
         });
 
         if (!simaLoginResult.success) {
           return reply.status(401).send({
             success: false,
-            error: 'SIMA session expired and re-authentication failed'
+            error: `SIMA session expired and re-authentication failed: ${simaLoginResult.error}`
           });
         }
 
@@ -164,6 +188,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
       });
     } catch (error) {
+      console.error('❌ Login route error:', error);
       reply.status(500).send({
         success: false,
         error: error instanceof Error ? error.message : 'Login failed'

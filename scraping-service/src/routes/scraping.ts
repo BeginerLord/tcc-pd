@@ -45,6 +45,8 @@ export async function scrapingRoutes(fastify: FastifyInstance) {
   );
 
   // Endpoint para obtener el horario/calendario
+  // Body: { cookies: string[], courseId?: string, date?: string }
+  // date format: YYYY-MM-DD (optional, defaults to today)
   fastify.post<{ Body: ScrapingRequest; Params: ScheduleParams }>(
     '/schedule/:period',
     async (request: FastifyRequest<{ Body: ScrapingRequest; Params: ScheduleParams }>, reply: FastifyReply) => {
@@ -67,13 +69,18 @@ export async function scrapingRoutes(fastify: FastifyInstance) {
           });
         }
 
+        // Log de la fecha que se está usando
+        const targetDate = date || new Date().toISOString().split('T')[0];
+        console.log(`📅 Fetching schedule for ${period}, date: ${targetDate}, courseId: ${courseId || 'all'}`);
+
         const schedule = await scraperService.scrapeSchedule(cookies, period, courseId, date);
 
         return reply.send({
           success: true,
           data: schedule,
           period,
-          courseId: courseId || 'all'
+          courseId: courseId || 'all',
+          date: targetDate
         });
       } catch (error) {
         console.error('Error fetching schedule:', error);
