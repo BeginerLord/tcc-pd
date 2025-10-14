@@ -2,7 +2,12 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { coursesService } from "@/services";
-import type { Course, SyncCoursesPayload } from "@/models/course.model";
+import type {
+  Course,
+  CourseInfo,
+  GetCoursesResponse,
+  SyncCoursesPayload,
+} from "@/models/course.model";
 
 /**
  * Keys para las queries de cursos
@@ -19,7 +24,8 @@ export const coursesKeys = {
 /**
  * Hook para obtener todos los cursos.
  * Ejemplo de uso:
- * const { data: courses, isLoading, error } = useCourses();
+ * const { data, isLoading, error } = useCourses();
+ * // data contiene { success, data: CourseInfo[], count }
  */
 export function useCourses() {
   return useQuery({

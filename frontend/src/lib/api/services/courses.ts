@@ -1,18 +1,11 @@
 import { simaApi } from "../config";
-
-export interface Course {
-  id: string;
-  code: string;
-  name: string;
-  credits?: number;
-  semester?: string;
-  schedule?: any;
-}
-
-export interface SyncCoursesPayload {
-  username: string;
-  password: string;
-}
+import type {
+  Course,
+  CourseInfo,
+  GetCoursesResponse,
+  SyncCoursesPayload,
+  SyncCoursesResponse,
+} from "@/models/course.model";
 
 /**
  * Servicio de cursos
@@ -20,9 +13,10 @@ export interface SyncCoursesPayload {
 export const coursesService = {
   /**
    * Obtener todos los cursos del usuario
+   * GET /api/courses
    */
-  async getCourses(): Promise<Course[]> {
-    const response = await simaApi.get<Course[]>("/courses");
+  async getCourses(): Promise<GetCoursesResponse> {
+    const response = await simaApi.get<GetCoursesResponse>("/courses");
     return response.data;
   },
 
@@ -39,8 +33,21 @@ export const coursesService = {
    */
   async syncCourses(
     credentials: SyncCoursesPayload
-  ): Promise<{ success: boolean; courses: Course[] }> {
-    const response = await simaApi.post("/courses/sync", credentials);
+  ): Promise<SyncCoursesResponse> {
+    const response = await simaApi.post<SyncCoursesResponse>(
+      "/courses/sync",
+      credentials
+    );
+    return response.data;
+  },
+
+  /**
+   * Buscar cursos por código o nombre
+   */
+  async searchCourses(query: string): Promise<Course[]> {
+    const response = await simaApi.get<Course[]>(`/courses/search`, {
+      params: { q: query },
+    });
     return response.data;
   },
 };

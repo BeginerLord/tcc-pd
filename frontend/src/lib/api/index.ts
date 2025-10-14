@@ -1,3 +1,5 @@
 export { simaApi } from "./config";
-export * from "./services/auth";
-export * from "./services/courses";
+export { authService } from "./services/auth";
+export { coursesService } from "./services/courses";
+export { scheduleService } from "./services/schedule";
+export { scrapingService } from "./services/scraping";

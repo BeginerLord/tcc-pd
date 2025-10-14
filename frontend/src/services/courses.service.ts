@@ -1,6 +1,8 @@
 import { simaApi } from "@/lib/api/config";
 import type {
   Course,
+  CourseInfo,
+  GetCoursesResponse,
   SyncCoursesPayload,
   SyncCoursesResponse,
 } from "@/models/course.model";
@@ -11,9 +13,10 @@ import type {
 class CoursesService {
   /**
    * Obtener todos los cursos del usuario
+   * GET /api/courses
    */
-  async getCourses(): Promise<Course[]> {
-    const response = await simaApi.get<Course[]>("/courses");
+  async getCourses(): Promise<GetCoursesResponse> {
+    const response = await simaApi.get<GetCoursesResponse>("/courses");
     return response.data;
   }
 

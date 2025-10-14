@@ -2,19 +2,83 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { scheduleService } from "@/services";
+import type { GetScheduleResponse } from "@/models/schedule.model";
 
 /**
  * Keys para las queries de horarios
  */
 export const scheduleKeys = {
   all: ["schedule"] as const,
+  day: (date?: string, courseId?: string) =>
+    [...scheduleKeys.all, "day", { date, courseId }] as const,
+  week: (date?: string, courseId?: string) =>
+    [...scheduleKeys.all, "week", { date, courseId }] as const,
+  month: (date?: string, courseId?: string) =>
+    [...scheduleKeys.all, "month", { date, courseId }] as const,
+  upcoming: (courseId?: string) =>
+    [...scheduleKeys.all, "upcoming", { courseId }] as const,
   history: (days?: number) => [...scheduleKeys.all, "history", days] as const,
-  events: (startDate: string, endDate: string) =>
-    [...scheduleKeys.all, "events", { startDate, endDate }] as const,
 };
 
 /**
- * Hook para obtener historial de horarios.
+ * Hook para obtener horario del día.
+ * Ejemplo de uso:
+ * const { data, isLoading } = useScheduleDay("2025-10-11");
+ * // data contiene { success, data: ScheduleData[], period, courseId, date }
+ */
+export function useScheduleDay(date?: string, courseId?: string) {
+  return useQuery({
+    queryKey: scheduleKeys.day(date, courseId),
+    queryFn: () => scheduleService.getScheduleDay(date, courseId),
+  });
+}
+
+/**
+ * Hook para obtener horario de la semana.
+ */
+export function useScheduleWeek(date?: string, courseId?: string) {
+  return useQuery({
+    queryKey: scheduleKeys.week(date, courseId),
+    queryFn: () => scheduleService.getScheduleWeek(date, courseId),
+  });
+}
+
+/**
+ * Hook para obtener horario del mes.
+ */
+export function useScheduleMonth(date?: string, courseId?: string) {
+  return useQuery({
+    queryKey: scheduleKeys.month(date, courseId),
+    queryFn: () => scheduleService.getScheduleMonth(date, courseId),
+  });
+}
+
+/**
+ * Hook para obtener actividades próximas.
+ */
+export function useScheduleUpcoming(courseId?: string) {
+  return useQuery({
+    queryKey: scheduleKeys.upcoming(courseId),
+    queryFn: () => scheduleService.getScheduleUpcoming(courseId),
+  });
+}
+
+/**
+ * Hook para obtener horario genérico por período.
+ */
+export function useSchedule(
+  period: "day" | "week" | "month" | "upcoming",
+  date?: string,
+  courseId?: string
+) {
+  return useQuery({
+    queryKey: [...scheduleKeys.all, period, { date, courseId }],
+    queryFn: () => scheduleService.getSchedule(period, date, courseId),
+  });
+}
+
+/**
+ * Hook para obtener historial de horarios (legacy).
  * Ejemplo de uso:
  * const { data: history, isLoading } = useScheduleHistory(7);
  */
@@ -22,19 +86,6 @@ export function useScheduleHistory(days: number = 7) {
   return useQuery({
     queryKey: scheduleKeys.history(days),
     queryFn: () => scheduleService.getHistory(days),
-  });
-}
-
-/**
- * Hook para obtener eventos de horario.
- * Ejemplo de uso:
- * const { data: events, isLoading } = useScheduleEvents("2025-01-01", "2025-01-31");
- */
-export function useScheduleEvents(startDate: string, endDate: string) {
-  return useQuery({
-    queryKey: scheduleKeys.events(startDate, endDate),
-    queryFn: () => scheduleService.getEvents(startDate, endDate),
-    enabled: !!startDate && !!endDate,
   });
 }
 

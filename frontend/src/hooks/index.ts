@@ -23,7 +23,7 @@ export {
 // Schedule hooks con TanStack Query
 export {
   useScheduleHistory,
-  useScheduleEvents,
+  useScheduleWeek,
   useClearScheduleCache,
   scheduleKeys,
   type UseClearScheduleCacheReturn,

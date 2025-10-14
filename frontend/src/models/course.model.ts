@@ -1,5 +1,14 @@
 /**
- * Modelo de Curso
+ * Información básica de un curso (desde SIMA)
+ */
+export interface CourseInfo {
+  id: string;
+  name: string;
+  shortname: string;
+}
+
+/**
+ * Modelo de Curso (extendido)
  */
 export interface Course {
   id: string;
@@ -11,6 +20,15 @@ export interface Course {
   schedule?: CourseSchedule[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+/**
+ * Respuesta GET /api/courses
+ */
+export interface GetCoursesResponse {
+  success: boolean;
+  data: CourseInfo[];
+  count: number;
 }
 
 /**

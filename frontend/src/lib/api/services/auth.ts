@@ -1,24 +1,9 @@
 import { simaApi } from "../config";
-
-export interface LoginCredentials {
-  username: string;
-  password: string;
-}
-
-export interface RegisterData {
-  username: string;
-  password: string;
-  email?: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: {
-    id: string;
-    username: string;
-    email?: string;
-  };
-}
+import type {
+  LoginCredentials,
+  RegisterData,
+  AuthResponse,
+} from "@/models/auth.model";
 
 /**
  * Servicio de autenticación

@@ -1,23 +1,12 @@
 import { simaApi } from "../config";
-
-export interface ScrapingCredentials {
-  username: string;
-  password: string;
-}
-
-export interface ScrapingSession {
-  sessionId: string;
-  cookies: string;
-}
-
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-  type: string;
-  details?: any;
-}
+import type {
+  ScrapingCredentials,
+  ScrapingSession,
+  CalendarEvent,
+  Activity,
+  ScrapingResponse,
+} from "@/models/scraping.model";
+import type { Course } from "@/models/course.model";
 
 /**
  * Servicio de scraping
@@ -37,8 +26,13 @@ export const scrapingService = {
   /**
    * Obtener cursos desde SIMA
    */
-  async getCourses(credentials: ScrapingCredentials): Promise<any> {
-    const response = await simaApi.post("/scraping/courses", credentials);
+  async getCourses(
+    credentials: ScrapingCredentials
+  ): Promise<ScrapingResponse<Course[]>> {
+    const response = await simaApi.post<ScrapingResponse<Course[]>>(
+      "/scraping/courses",
+      credentials
+    );
     return response.data;
   },
 
@@ -47,8 +41,8 @@ export const scrapingService = {
    */
   async getCalendar(
     credentials: ScrapingCredentials
-  ): Promise<CalendarEvent[]> {
-    const response = await simaApi.post<CalendarEvent[]>(
+  ): Promise<ScrapingResponse<CalendarEvent[]>> {
+    const response = await simaApi.post<ScrapingResponse<CalendarEvent[]>>(
       "/scraping/calendar",
       credentials
     );
@@ -58,8 +52,34 @@ export const scrapingService = {
   /**
    * Obtener actividades desde SIMA
    */
-  async getActivities(credentials: ScrapingCredentials): Promise<any> {
-    const response = await simaApi.post("/scraping/activities", credentials);
+  async getActivities(
+    credentials: ScrapingCredentials
+  ): Promise<ScrapingResponse<Activity[]>> {
+    const response = await simaApi.post<ScrapingResponse<Activity[]>>(
+      "/scraping/activities",
+      credentials
+    );
     return response.data;
+  },
+
+  /**
+   * Scraping completo de todos los datos
+   */
+  async scrapeAll(credentials: ScrapingCredentials): Promise<{
+    courses: Course[];
+    calendar: CalendarEvent[];
+    activities: Activity[];
+  }> {
+    const [coursesRes, calendarRes, activitiesRes] = await Promise.all([
+      this.getCourses(credentials),
+      this.getCalendar(credentials),
+      this.getActivities(credentials),
+    ]);
+
+    return {
+      courses: coursesRes.data,
+      calendar: calendarRes.data,
+      activities: activitiesRes.data,
+    };
   },
 };
