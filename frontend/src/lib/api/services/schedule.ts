@@ -24,7 +24,9 @@ export const scheduleService = {
    * Obtener historial de horarios
    */
   async getHistory(days: number = 7): Promise<ScheduleHistory[]> {
-    const response = await simaApi.get<ScheduleHistory[]>(`/schedule/history/${days}`);
+    const response = await simaApi.get<ScheduleHistory[]>(
+      `/schedule/history/${days}`
+    );
     return response.data;
   },
 

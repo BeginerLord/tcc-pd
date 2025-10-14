@@ -22,7 +22,10 @@ class ScheduleService {
   /**
    * Obtener eventos de horario para un rango de fechas
    */
-  async getEvents(startDate: string, endDate: string): Promise<ScheduleEvent[]> {
+  async getEvents(
+    startDate: string,
+    endDate: string
+  ): Promise<ScheduleEvent[]> {
     const response = await simaApi.get<ScheduleEvent[]>("/schedule/events", {
       params: { startDate, endDate },
     });
@@ -33,7 +36,9 @@ class ScheduleService {
    * Limpiar caché de horarios
    */
   async clearCache(): Promise<ClearCacheResponse> {
-    const response = await simaApi.delete<ClearCacheResponse>("/schedule/cache");
+    const response = await simaApi.delete<ClearCacheResponse>(
+      "/schedule/cache"
+    );
     return response.data;
   }
 }

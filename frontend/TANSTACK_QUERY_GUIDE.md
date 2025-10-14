@@ -19,6 +19,7 @@ La app ya está envuelta con el `QueryProvider` en `app/layout.tsx`:
 ### 🔐 1. Autenticación (useAuth)
 
 #### Login
+
 ```tsx
 import { useLogin } from "@/hooks";
 
@@ -30,7 +31,7 @@ function LoginForm() {
     },
     onError: (error) => {
       alert(`Error: ${error.message}`);
-    }
+    },
   });
 
   const handleLogin = () => {
@@ -46,6 +47,7 @@ function LoginForm() {
 ```
 
 #### Registro
+
 ```tsx
 import { useRegister } from "@/hooks";
 
@@ -53,7 +55,7 @@ function RegisterForm() {
   const { registerFn, isPending } = useRegister({
     onSuccess: (data) => {
       alert("¡Registro exitoso!");
-    }
+    },
   });
 
   const handleRegister = () => {
@@ -61,7 +63,7 @@ function RegisterForm() {
       username: "Nilson",
       password: "Akaza1999$",
       simaUsername: "1003027895",
-      simaPassword: "Akaza1999$"
+      simaPassword: "Akaza1999$",
     });
   };
 
@@ -74,6 +76,7 @@ function RegisterForm() {
 ```
 
 #### Hook completo (backward compatible)
+
 ```tsx
 import { useAuth } from "@/hooks";
 
@@ -96,6 +99,7 @@ function Dashboard() {
 ### 📚 2. Cursos (useCourses)
 
 #### Obtener todos los cursos
+
 ```tsx
 import { useCourses } from "@/hooks";
 
@@ -116,6 +120,7 @@ function CoursesList() {
 ```
 
 #### Obtener un curso específico
+
 ```tsx
 import { useCourse } from "@/hooks";
 
@@ -129,6 +134,7 @@ function CourseDetail({ courseId }: { courseId: string }) {
 ```
 
 #### Sincronizar cursos desde SIMA
+
 ```tsx
 import { useSyncCourses } from "@/hooks";
 
@@ -140,7 +146,7 @@ function SyncButton() {
     },
     onError: (error) => {
       alert(`Error: ${error.message}`);
-    }
+    },
   });
 
   const handleSync = () => {
@@ -156,6 +162,7 @@ function SyncButton() {
 ```
 
 #### Buscar cursos
+
 ```tsx
 import { useSearchCourses } from "@/hooks";
 import { useState } from "react";
@@ -183,6 +190,7 @@ function SearchCourses() {
 ### 📅 3. Horarios (useSchedule)
 
 #### Obtener historial
+
 ```tsx
 import { useScheduleHistory } from "@/hooks";
 
@@ -207,6 +215,7 @@ function ScheduleHistory() {
 ```
 
 #### Obtener eventos
+
 ```tsx
 import { useScheduleEvents } from "@/hooks";
 
@@ -223,7 +232,9 @@ function CalendarView() {
       {events?.map((event) => (
         <div key={event.id}>
           <h4>{event.title}</h4>
-          <p>{event.start} - {event.end}</p>
+          <p>
+            {event.start} - {event.end}
+          </p>
         </div>
       ))}
     </div>
@@ -232,6 +243,7 @@ function CalendarView() {
 ```
 
 #### Limpiar caché
+
 ```tsx
 import { useClearScheduleCache } from "@/hooks";
 
@@ -239,7 +251,7 @@ function ClearCacheButton() {
   const { clearCacheFn, isPending } = useClearScheduleCache({
     onSuccess: () => {
       alert("Caché limpiado exitosamente");
-    }
+    },
   });
 
   return (
@@ -253,6 +265,7 @@ function ClearCacheButton() {
 ### 🔍 4. Scraping (useScraping)
 
 #### Login en SIMA
+
 ```tsx
 import { useSimaLogin } from "@/hooks";
 
@@ -260,7 +273,7 @@ function SimaLoginButton() {
   const { simaLoginFn, isPending, data } = useSimaLogin({
     onSuccess: (session) => {
       console.log("Session ID:", session.sessionId);
-    }
+    },
   });
 
   const handleLogin = () => {
@@ -276,6 +289,7 @@ function SimaLoginButton() {
 ```
 
 #### Scraping de cursos
+
 ```tsx
 import { useScrapeCourses } from "@/hooks";
 
@@ -283,7 +297,7 @@ function ScrapeCourses() {
   const { scrapeCoursesFn, isPending, data } = useScrapeCourses({
     onSuccess: (response) => {
       console.log("Cursos:", response.data);
-    }
+    },
   });
 
   const handleScrape = () => {
@@ -299,6 +313,7 @@ function ScrapeCourses() {
 ```
 
 #### Scraping completo
+
 ```tsx
 import { useScrapeAll } from "@/hooks";
 
@@ -312,7 +327,7 @@ function ScrapeAllButton() {
     },
     onError: (error) => {
       alert(`Error: ${error.message}`);
-    }
+    },
   });
 
   const handleScrapeAll = () => {
@@ -339,6 +354,7 @@ function ScrapeAllButton() {
 ## 📋 Propiedades útiles
 
 ### Para Queries (useQuery)
+
 - `data` - Datos de la query
 - `isLoading` - Si está cargando (primera vez)
 - `isFetching` - Si está fetching (incluye refetch)
@@ -348,6 +364,7 @@ function ScrapeAllButton() {
 - `isError` - Si hubo error
 
 ### Para Mutations (useMutation)
+
 - `mutate()` - Función para ejecutar la mutación (con nombre personalizado como `loginFn`)
 - `mutateAsync()` - Versión async de mutate (como `loginAsync`)
 - `isPending` - Si está en proceso
@@ -389,7 +406,7 @@ export default function CoursesPage() {
     },
     onError: (err) => {
       alert("Error al sincronizar");
-    }
+    },
   });
 
   const handleSync = () => {
@@ -405,7 +422,7 @@ export default function CoursesPage() {
       <button onClick={handleSync} disabled={isPending}>
         {isPending ? "Sincronizando..." : "Sincronizar"}
       </button>
-      
+
       <ul>
         {courses?.map((course) => (
           <li key={course.id}>
@@ -422,6 +439,7 @@ export default function CoursesPage() {
 ## 📝 Lista completa de hooks exportados
 
 ### Auth
+
 - `useAuth()` - Hook completo de autenticación
 - `useAuthState()` - Solo estado de autenticación
 - `useLogin()` - Mutation para login
@@ -429,20 +447,22 @@ export default function CoursesPage() {
 - `useValidateToken()` - Mutation para validar token
 
 ### Courses
+
 - `useCourses()` - Query para listar todos los cursos
 - `useCourse(id)` - Query para un curso específico
 - `useSyncCourses()` - Mutation para sincronizar cursos
 - `useSearchCourses(query)` - Query para buscar cursos
 
 ### Schedule
+
 - `useScheduleHistory(days)` - Query para historial
 - `useScheduleEvents(start, end)` - Query para eventos
 - `useClearScheduleCache()` - Mutation para limpiar cache
 
 ### Scraping
+
 - `useSimaLogin()` - Mutation para login en SIMA
 - `useScrapeCourses()` - Mutation para scraping de cursos
 - `useScrapeCalendar()` - Mutation para calendario
 - `useScrapeActivities()` - Mutation para actividades
 - `useScrapeAll()` - Mutation para todo
-

@@ -6,7 +6,7 @@ export interface ScheduleEvent {
   title: string;
   start: string;
   end: string;
-  type: 'class' | 'exam' | 'assignment' | 'event';
+  type: "class" | "exam" | "assignment" | "event";
   course?: string;
   courseCode?: string;
   location?: string;

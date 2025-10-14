@@ -58,7 +58,7 @@ export function useClearScheduleCache(options?: {
     onSuccess: (data) => {
       // Invalidar todas las queries de schedule
       queryClient.invalidateQueries({ queryKey: scheduleKeys.all });
-      
+
       console.log("✅ Caché de horarios limpiado");
       options?.onSuccess?.(data);
     },
@@ -79,4 +79,6 @@ export function useClearScheduleCache(options?: {
   };
 }
 
-export type UseClearScheduleCacheReturn = ReturnType<typeof useClearScheduleCache>;
+export type UseClearScheduleCacheReturn = ReturnType<
+  typeof useClearScheduleCache
+>;

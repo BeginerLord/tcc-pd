@@ -28,13 +28,16 @@ export const authService = {
    * Iniciar sesión
    */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await simaApi.post<AuthResponse>("/auth/login", credentials);
-    
+    const response = await simaApi.post<AuthResponse>(
+      "/auth/login",
+      credentials
+    );
+
     // Guardar token en sessionStorage
     if (response.data.token && typeof window !== "undefined") {
       sessionStorage.setItem("token", response.data.token);
     }
-    
+
     return response.data;
   },
 
@@ -43,12 +46,12 @@ export const authService = {
    */
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await simaApi.post<AuthResponse>("/auth/register", data);
-    
+
     // Guardar token en sessionStorage
     if (response.data.token && typeof window !== "undefined") {
       sessionStorage.setItem("token", response.data.token);
     }
-    
+
     return response.data;
   },
 

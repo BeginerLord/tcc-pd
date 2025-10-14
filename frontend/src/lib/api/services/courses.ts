@@ -37,7 +37,9 @@ export const coursesService = {
   /**
    * Sincronizar cursos desde SIMA
    */
-  async syncCourses(credentials: SyncCoursesPayload): Promise<{ success: boolean; courses: Course[] }> {
+  async syncCourses(
+    credentials: SyncCoursesPayload
+  ): Promise<{ success: boolean; courses: Course[] }> {
     const response = await simaApi.post("/courses/sync", credentials);
     return response.data;
   },

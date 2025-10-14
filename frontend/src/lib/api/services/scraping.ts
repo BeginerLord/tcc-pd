@@ -27,7 +27,10 @@ export const scrapingService = {
    * Iniciar sesión en SIMA
    */
   async login(credentials: ScrapingCredentials): Promise<ScrapingSession> {
-    const response = await simaApi.post<ScrapingSession>("/scraping/login", credentials);
+    const response = await simaApi.post<ScrapingSession>(
+      "/scraping/login",
+      credentials
+    );
     return response.data;
   },
 
@@ -42,8 +45,13 @@ export const scrapingService = {
   /**
    * Obtener calendario desde SIMA
    */
-  async getCalendar(credentials: ScrapingCredentials): Promise<CalendarEvent[]> {
-    const response = await simaApi.post<CalendarEvent[]>("/scraping/calendar", credentials);
+  async getCalendar(
+    credentials: ScrapingCredentials
+  ): Promise<CalendarEvent[]> {
+    const response = await simaApi.post<CalendarEvent[]>(
+      "/scraping/calendar",
+      credentials
+    );
     return response.data;
   },
 

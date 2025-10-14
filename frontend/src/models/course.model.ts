@@ -21,7 +21,7 @@ export interface CourseSchedule {
   startTime: string;
   endTime: string;
   location?: string;
-  type?: 'theory' | 'lab' | 'practice';
+  type?: "theory" | "lab" | "practice";
 }
 
 /**

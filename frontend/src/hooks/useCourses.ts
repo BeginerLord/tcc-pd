@@ -64,7 +64,7 @@ export function useSyncCourses(options?: {
       queryClient.invalidateQueries({ queryKey: coursesKeys.lists() });
       // Opcionalmente, setear directamente los datos
       queryClient.setQueryData(coursesKeys.lists(), data.courses);
-      
+
       console.log("✅ Cursos sincronizados:", data.courses.length, "cursos");
       options?.onSuccess?.(data);
     },

@@ -36,10 +36,10 @@ export interface Activity {
   id: string;
   title: string;
   course: string;
-  type: 'homework' | 'quiz' | 'exam' | 'project';
+  type: "homework" | "quiz" | "exam" | "project";
   dueDate: string;
   description?: string;
-  status?: 'pending' | 'submitted' | 'graded';
+  status?: "pending" | "submitted" | "graded";
   grade?: number;
 }
 

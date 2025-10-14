@@ -8,7 +8,7 @@ export {
   type UseLoginReturn,
   type UseRegisterReturn,
   type UseValidateTokenReturn,
-} from './useAuth';
+} from "./useAuth";
 
 // Courses hooks con TanStack Query
 export {
@@ -18,7 +18,7 @@ export {
   useSearchCourses,
   coursesKeys,
   type UseSyncCoursesReturn,
-} from './useCourses';
+} from "./useCourses";
 
 // Schedule hooks con TanStack Query
 export {
@@ -27,7 +27,7 @@ export {
   useClearScheduleCache,
   scheduleKeys,
   type UseClearScheduleCacheReturn,
-} from './useSchedule';
+} from "./useSchedule";
 
 // Scraping hooks con TanStack Query
 export {
@@ -41,4 +41,4 @@ export {
   type UseScrapeCalendarReturn,
   type UseScrapeActivitiesReturn,
   type UseScrapeAllReturn,
-} from './useScraping';
+} from "./useScraping";
