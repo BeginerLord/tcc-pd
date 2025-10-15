@@ -22,8 +22,11 @@ export {
 
 // Schedule hooks con TanStack Query
 export {
-  useScheduleHistory,
+  useScheduleDay,
   useScheduleWeek,
+  useScheduleMonth,
+  useScheduleUpcoming,
+  useScheduleHistory,
   useClearScheduleCache,
   scheduleKeys,
   type UseClearScheduleCacheReturn,

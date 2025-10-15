@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { CoursesGrid } from "@/components/courses-grid"
+import { DaySchedule } from "@/components/day-schedule"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCourses, useSyncCourses } from "@/hooks"
@@ -161,6 +162,9 @@ export default function DashboardPage() {
                             />
                         </CardContent>
                     </Card>
+
+                    {/* Day Schedule */}
+                    <DaySchedule />
                 </div>
             </main>
         </div>
