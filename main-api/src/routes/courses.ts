@@ -50,7 +50,8 @@ export async function coursesRoutes(fastify: FastifyInstance) {
         const courses = await Course.find({ userId }).sort({ name: 1 });
 
         return reply.send({
-          courses: courses.map(c => ({
+          success: true,
+          data: courses.map(c => ({
             id: c.courseId,
             name: c.name,
             shortname: c.shortname,
@@ -114,8 +115,10 @@ export async function coursesRoutes(fastify: FastifyInstance) {
         }
 
         return reply.send({
+          success: true,
           message: 'Courses synced successfully',
           courses: syncedCourses,
+          coursesCount: syncedCourses.length,
           count: syncedCourses.length
         });
 

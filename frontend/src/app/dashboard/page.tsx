@@ -9,6 +9,7 @@ import { useCourses, useSyncCourses } from "@/hooks"
 import { RefreshCw, LogOut, Download, BookOpen } from "lucide-react"
 import { toast } from "sonner"
 import type { CourseInfo } from "@/models"
+import { getProgramFromCourses } from "@/lib/course-utils"
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -32,18 +33,9 @@ export default function DashboardPage() {
     })
 
     const handleSyncCourses = () => {
-        // Obtener credenciales de SIMA del usuario (podrías guardarlas en el perfil)
-        // Por ahora, pedimos al usuario que las ingrese
-        const username = prompt("Ingresa tu usuario de SIMA:")
-        const password = prompt("Ingresa tu contraseña de SIMA:")
-
-        if (username && password) {
-            syncCoursesFn({ username, password })
-        } else {
-            toast.error("Credenciales requeridas", {
-                description: "Debes ingresar tus credenciales de SIMA para sincronizar",
-            })
-        }
+        // La sincronización usa las cookies guardadas del usuario
+        // No necesita credenciales adicionales
+        syncCoursesFn()
     }
 
     const handleLogout = () => {
@@ -62,8 +54,11 @@ export default function DashboardPage() {
         // router.push(`/dashboard/courses/${course.id}`)
     }
 
+    // Obtener el nombre del programa desde los cursos
+    const programName = coursesResponse?.data ? getProgramFromCourses(coursesResponse.data) : "Programa"
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-secondary/5">
+        <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-secondary/5" suppressHydrationWarning>
             {/* Header */}
             <header className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-4">
@@ -118,7 +113,7 @@ export default function DashboardPage() {
                     {/* Stats Card */}
                     <Card className="border-border/50 shadow-sm">
                         <CardHeader>
-                            <CardTitle className="text-xl">Resumen</CardTitle>
+                            <CardTitle className="text-xl">Resumen - {programName}</CardTitle>
                             <CardDescription>
                                 Vista general de tus cursos registrados
                             </CardDescription>

@@ -30,13 +30,11 @@ class CoursesService {
 
   /**
    * Sincronizar cursos desde SIMA
+   * No requiere credenciales, usa el token de autorización
    */
-  async syncCourses(
-    credentials: SyncCoursesPayload
-  ): Promise<SyncCoursesResponse> {
+  async syncCourses(): Promise<SyncCoursesResponse> {
     const response = await simaApi.post<SyncCoursesResponse>(
-      "/courses/sync",
-      credentials
+      "/courses/sync"
     );
     return response.data;
   }

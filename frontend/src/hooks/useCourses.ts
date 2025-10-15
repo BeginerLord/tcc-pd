@@ -49,11 +49,12 @@ export function useCourse(courseId: string) {
 
 /**
  * Hook para sincronizar cursos desde SIMA.
+ * No requiere credenciales, usa el token de autorización del usuario.
  * Ejemplo de uso:
  * const { syncCoursesFn, isPending } = useSyncCourses({
  *   onSuccess: (data) => console.log("Sincronizado!", data.courses)
  * });
- * syncCoursesFn({ username: "user", password: "pass" });
+ * syncCoursesFn();
  */
 export function useSyncCourses(options?: {
   onSuccess?: (data: any) => void;
@@ -63,8 +64,7 @@ export function useSyncCourses(options?: {
 
   const mutation = useMutation({
     mutationKey: ["courses", "sync"],
-    mutationFn: (credentials: SyncCoursesPayload) =>
-      coursesService.syncCourses(credentials),
+    mutationFn: () => coursesService.syncCourses(),
     onSuccess: (data) => {
       // Invalidar y actualizar el cache de cursos
       queryClient.invalidateQueries({ queryKey: coursesKeys.lists() });
@@ -85,10 +85,8 @@ export function useSyncCourses(options?: {
   });
 
   return {
-    syncCoursesFn: (credentials: SyncCoursesPayload) =>
-      mutation.mutate(credentials),
-    syncCoursesAsync: (credentials: SyncCoursesPayload) =>
-      mutation.mutateAsync(credentials),
+    syncCoursesFn: () => mutation.mutate(),
+    syncCoursesAsync: () => mutation.mutateAsync(),
     ...mutation,
   };
 }
