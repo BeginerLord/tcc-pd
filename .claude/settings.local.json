@@ -23,7 +23,8 @@
       "Bash(mongosh:*)",
       "Bash(node:*)",
       "Bash(git commit:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
