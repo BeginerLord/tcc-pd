@@ -1,8 +1,12 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export async function connectDatabase(): Promise<void> {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/sima-scraper';
+    const mongoUri = process.env.MONGODB_URI;
+
+    if (!mongoUri) {
+      throw new Error("MONGODB_URI environment variable is not defined");
+    }
 
     await mongoose.connect(mongoUri, {
       maxPoolSize: 10,
@@ -10,9 +14,9 @@ export async function connectDatabase(): Promise<void> {
       socketTimeoutMS: 45000,
     });
 
-    console.log('✅ Connected to MongoDB');
+    console.log("✅ Connected to MongoDB");
   } catch (error) {
-    console.error('❌ MongoDB connection failed:', error);
+    console.error("❌ MongoDB connection failed:", error);
     process.exit(1);
   }
 }
@@ -20,8 +24,8 @@ export async function connectDatabase(): Promise<void> {
 export async function disconnectDatabase(): Promise<void> {
   try {
     await mongoose.connection.close();
-    console.log('✅ Disconnected from MongoDB');
+    console.log("✅ Disconnected from MongoDB");
   } catch (error) {
-    console.error('❌ MongoDB disconnection failed:', error);
+    console.error("❌ MongoDB disconnection failed:", error);
   }
 }
