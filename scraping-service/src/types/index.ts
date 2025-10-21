@@ -69,7 +69,36 @@ export interface ScheduleData {
 
 export interface ScrapingRequest {
   cookies: string[];
-  period?: 'day' | 'week' | 'month' | 'upcoming';
+  period?: "day" | "week" | "month" | "upcoming";
   courseId?: string;
   date?: string;
+}
+
+export interface CourseActivity {
+  id: string;
+  name: string;
+  type: string;
+  section: number;
+  sectionName?: string;
+  url?: string;
+  dates?: {
+    apertura?: string;
+    cierre?: string;
+  };
+  icon?: string;
+  description?: string;
+}
+
+export interface CourseSection {
+  sectionNumber: number;
+  sectionName: string;
+  activities: CourseActivity[];
+}
+
+export interface CourseSchedule {
+  courseId: string;
+  courseName?: string;
+  sections: CourseSection[];
+  totalActivities: number;
+  lastUpdated: string;
 }

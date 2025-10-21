@@ -1,11 +1,13 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { ScraperService } from '../services/scraperService';
-import { ScrapingRequest } from '../types';
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { ScraperService } from "../services/scraperService";
+import { ScrapingRequest } from "../types";
+import { CourseActivitiesService } from "../services/modules/courseActivitiesService";
 
 const scraperService = new ScraperService();
+const courseActivitiesService = new CourseActivitiesService();
 
 interface ScheduleParams {
-  period: 'day' | 'week' | 'month' | 'upcoming';
+  period: "day" | "week" | "month" | "upcoming";
 }
 
 interface CourseParams {
@@ -15,15 +17,18 @@ interface CourseParams {
 export async function scrapingRoutes(fastify: FastifyInstance) {
   // Endpoint para obtener cursos del usuario
   fastify.post<{ Body: { cookies: string[] } }>(
-    '/courses',
-    async (request: FastifyRequest<{ Body: { cookies: string[] } }>, reply: FastifyReply) => {
+    "/courses",
+    async (
+      request: FastifyRequest<{ Body: { cookies: string[] } }>,
+      reply: FastifyReply
+    ) => {
       try {
         const { cookies } = request.body;
 
         if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
           return reply.code(400).send({
-            error: 'Invalid request',
-            message: 'Cookies array is required'
+            error: "Invalid request",
+            message: "Cookies array is required",
           });
         }
 
@@ -32,13 +37,13 @@ export async function scrapingRoutes(fastify: FastifyInstance) {
         return reply.send({
           success: true,
           data: courses,
-          count: courses.length
+          count: courses.length,
         });
       } catch (error) {
-        console.error('Error fetching courses:', error);
+        console.error("Error fetching courses:", error);
         return reply.code(500).send({
-          error: 'Scraping failed',
-          message: error instanceof Error ? error.message : 'Unknown error'
+          error: "Scraping failed",
+          message: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
@@ -48,45 +53,60 @@ export async function scrapingRoutes(fastify: FastifyInstance) {
   // Body: { cookies: string[], courseId?: string, date?: string }
   // date format: YYYY-MM-DD (optional, defaults to today)
   fastify.post<{ Body: ScrapingRequest; Params: ScheduleParams }>(
-    '/schedule/:period',
-    async (request: FastifyRequest<{ Body: ScrapingRequest; Params: ScheduleParams }>, reply: FastifyReply) => {
+    "/schedule/:period",
+    async (
+      request: FastifyRequest<{
+        Body: ScrapingRequest;
+        Params: ScheduleParams;
+      }>,
+      reply: FastifyReply
+    ) => {
       try {
         const { cookies, courseId, date } = request.body;
         const { period } = request.params;
 
         if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
           return reply.code(400).send({
-            error: 'Invalid request',
-            message: 'Cookies array is required'
+            error: "Invalid request",
+            message: "Cookies array is required",
           });
         }
 
-        const validPeriods = ['day', 'week', 'month', 'upcoming'];
+        const validPeriods = ["day", "week", "month", "upcoming"];
         if (!validPeriods.includes(period)) {
           return reply.code(400).send({
-            error: 'Invalid period',
-            message: 'Period must be one of: day, week, month, upcoming'
+            error: "Invalid period",
+            message: "Period must be one of: day, week, month, upcoming",
           });
         }
 
         // Log de la fecha que se está usando
-        const targetDate = date || new Date().toISOString().split('T')[0];
-        console.log(`📅 Fetching schedule for ${period}, date: ${targetDate}, courseId: ${courseId || 'all'}`);
+        const targetDate = date || new Date().toISOString().split("T")[0];
+        console.log(
+          `📅 Fetching schedule for ${period}, date: ${targetDate}, courseId: ${
+            courseId || "all"
+          }`
+        );
 
-        const schedule = await scraperService.scrapeSchedule(cookies, period, courseId, date);
+        const schedule = await scraperService.scrapeSchedule(
+          cookies,
+          period,
+          courseId,
+          date
+        );
 
         return reply.send({
           success: true,
           data: schedule,
           period,
-          courseId: courseId || 'all',
-          date: targetDate
+          courseId: courseId || "all",
+          date: targetDate,
         });
       } catch (error) {
-        console.error('Error fetching schedule:', error);
+        console.error("Error fetching schedule:", error);
         return reply.code(500).send({
-          error: 'Scraping failed',
-          message: error instanceof Error ? error.message : 'Unknown error'
+          error: "Scraping failed",
+          message: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
@@ -94,49 +114,203 @@ export async function scrapingRoutes(fastify: FastifyInstance) {
 
   // Endpoint para obtener eventos próximos de un curso específico
   fastify.post<{ Body: { cookies: string[] }; Params: CourseParams }>(
-    '/upcoming/:courseId',
-    async (request: FastifyRequest<{ Body: { cookies: string[] }; Params: CourseParams }>, reply: FastifyReply) => {
+    "/upcoming/:courseId",
+    async (
+      request: FastifyRequest<{
+        Body: { cookies: string[] };
+        Params: CourseParams;
+      }>,
+      reply: FastifyReply
+    ) => {
       try {
         const { cookies } = request.body;
         const { courseId } = request.params;
 
         if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
           return reply.code(400).send({
-            error: 'Invalid request',
-            message: 'Cookies array is required'
+            error: "Invalid request",
+            message: "Cookies array is required",
           });
         }
 
         if (!courseId) {
           return reply.code(400).send({
-            error: 'Invalid request',
-            message: 'Course ID is required'
+            error: "Invalid request",
+            message: "Course ID is required",
           });
         }
 
-        const events = await scraperService.getUpcomingEvents(cookies, courseId);
+        const events = await scraperService.getUpcomingEvents(
+          cookies,
+          courseId
+        );
 
         return reply.send({
           success: true,
           data: events,
-          courseId
+          courseId,
         });
       } catch (error) {
-        console.error('Error fetching upcoming events:', error);
+        console.error("Error fetching upcoming events:", error);
         return reply.code(500).send({
-          error: 'Scraping failed',
-          message: error instanceof Error ? error.message : 'Unknown error'
+          error: "Scraping failed",
+          message: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
   );
 
   // Health check para el servicio de scraping
-  fastify.get('/health', async () => {
+  fastify.get("/health", async () => {
     return {
-      status: 'ok',
-      service: 'scraping-service',
-      timestamp: new Date().toISOString()
+      status: "ok",
+      service: "scraping-service",
+      timestamp: new Date().toISOString(),
     };
   });
+
+  // Endpoint para obtener todas las actividades de un curso específico
+  fastify.post<{ Body: { cookies: string[] }; Params: CourseParams }>(
+    "/course/:courseId/activities",
+    async (
+      request: FastifyRequest<{
+        Body: { cookies: string[] };
+        Params: CourseParams;
+      }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { cookies } = request.body;
+        const { courseId } = request.params;
+
+        if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
+          return reply.code(400).send({
+            error: "Invalid request",
+            message: "Cookies array is required",
+          });
+        }
+
+        if (!courseId) {
+          return reply.code(400).send({
+            error: "Invalid request",
+            message: "Course ID is required",
+          });
+        }
+
+        console.log(`📚 Fetching activities for course ID: ${courseId}`);
+        const courseSchedule =
+          await courseActivitiesService.getCourseActivities(cookies, courseId);
+
+        return reply.send({
+          success: true,
+          data: courseSchedule,
+        });
+      } catch (error) {
+        console.error("Error fetching course activities:", error);
+        return reply.code(500).send({
+          error: "Scraping failed",
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+  );
+
+  // Endpoint para obtener actividades de múltiples cursos
+  fastify.post<{ Body: { cookies: string[]; courseIds: string[] } }>(
+    "/courses/activities",
+    async (
+      request: FastifyRequest<{
+        Body: { cookies: string[]; courseIds: string[] };
+      }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { cookies, courseIds } = request.body;
+
+        if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
+          return reply.code(400).send({
+            error: "Invalid request",
+            message: "Cookies array is required",
+          });
+        }
+
+        if (!courseIds || !Array.isArray(courseIds) || courseIds.length === 0) {
+          return reply.code(400).send({
+            error: "Invalid request",
+            message: "Course IDs array is required",
+          });
+        }
+
+        console.log(`📚 Fetching activities for ${courseIds.length} courses`);
+        const coursesSchedules =
+          await courseActivitiesService.getMultipleCoursesActivities(
+            cookies,
+            courseIds
+          );
+
+        return reply.send({
+          success: true,
+          data: coursesSchedules,
+          count: coursesSchedules.length,
+        });
+      } catch (error) {
+        console.error("Error fetching multiple course activities:", error);
+        return reply.code(500).send({
+          error: "Scraping failed",
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+  );
+
+  // Endpoint para obtener solo actividades con fechas de un curso
+  fastify.post<{ Body: { cookies: string[] }; Params: CourseParams }>(
+    "/course/:courseId/activities/dated",
+    async (
+      request: FastifyRequest<{
+        Body: { cookies: string[] };
+        Params: CourseParams;
+      }>,
+      reply: FastifyReply
+    ) => {
+      try {
+        const { cookies } = request.body;
+        const { courseId } = request.params;
+
+        if (!cookies || !Array.isArray(cookies) || cookies.length === 0) {
+          return reply.code(400).send({
+            error: "Invalid request",
+            message: "Cookies array is required",
+          });
+        }
+
+        if (!courseId) {
+          return reply.code(400).send({
+            error: "Invalid request",
+            message: "Course ID is required",
+          });
+        }
+
+        console.log(`📅 Fetching dated activities for course ID: ${courseId}`);
+        const activities =
+          await courseActivitiesService.getCourseActivitiesWithDates(
+            cookies,
+            courseId
+          );
+
+        return reply.send({
+          success: true,
+          data: activities,
+          count: activities.length,
+          courseId,
+        });
+      } catch (error) {
+        console.error("Error fetching dated course activities:", error);
+        return reply.code(500).send({
+          error: "Scraping failed",
+          message: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+  );
 }
