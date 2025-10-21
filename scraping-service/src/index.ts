@@ -40,22 +40,22 @@ async function start() {
 
     await fastify.listen({ port, host });
 
-    console.log(`🚀 Scraping Service running at http://${host}:${port}`);
-    console.log(`📋 Health check: http://${host}:${port}/api/scraping/health`);
+    console.log(` Scraping Service running at http://${host}:${port}`);
+    console.log(` Health check: http://${host}:${port}/api/scraping/health`);
   } catch (error) {
-    console.error("❌ Error starting scraping service:", error);
+    console.error(" Error starting scraping service:", error);
     process.exit(1);
   }
 }
 
 process.on("SIGINT", async () => {
-  console.log("\n📡 Shutting down scraping service...");
+  console.log("\n Shutting down scraping service...");
   try {
     await fastify.close();
-    console.log("✅ Scraping service shutdown complete");
+    console.log(" Scraping service shutdown complete");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error during shutdown:", error);
+    console.error(" Error during shutdown:", error);
     process.exit(1);
   }
 });

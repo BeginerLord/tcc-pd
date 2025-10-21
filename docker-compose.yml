@@ -1,43 +1,6 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # MongoDB
-  mongodb:
-    image: mongo:7
-    container_name: sima-mongodb
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_DATABASE: sima-scraper
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - sima-network
-
-  # Main API Service
-  main-api:
-    build:
-      context: ./main-api
-      dockerfile: Dockerfile
-    container_name: sima-main-api
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - MONGODB_URI=mongodb://mongodb:27017/sima-scraper
-      - JWT_SECRET=${JWT_SECRET}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-    depends_on:
-      - mongodb
-    networks:
-      - sima-network
-    volumes:
-      - ./main-api:/app
-      - /app/node_modules
-
   # Scraping Service
   scraping-service:
     build:
@@ -55,6 +18,27 @@ services:
       - sima-network
     volumes:
       - ./scraping-service:/app
+      - /app/node_modules
+
+  # Main API Service
+  main-api:
+    build:
+      context: ./main-api
+      dockerfile: Dockerfile
+    container_name: sima-main-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=${MONGODB_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    networks:
+      - sima-network
+    volumes:
+      - ./main-api:/app
       - /app/node_modules
 
   # API Gateway
@@ -85,6 +69,3 @@ services:
 networks:
   sima-network:
     driver: bridge
-
-volumes:
-  mongodb_data:

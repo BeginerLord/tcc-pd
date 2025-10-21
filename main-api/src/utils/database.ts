@@ -16,7 +16,7 @@ export async function connectDatabase(): Promise<void> {
 
     console.log("✅ Connected to MongoDB");
   } catch (error) {
-    console.error("❌ MongoDB connection failed:", error);
+    console.error("MongoDB connection failed:", error);
     process.exit(1);
   }
 }
@@ -26,6 +26,6 @@ export async function disconnectDatabase(): Promise<void> {
     await mongoose.connection.close();
     console.log("✅ Disconnected from MongoDB");
   } catch (error) {
-    console.error("❌ MongoDB disconnection failed:", error);
+    console.error("MongoDB disconnection failed:", error);
   }
 }

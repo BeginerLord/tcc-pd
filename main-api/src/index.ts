@@ -59,9 +59,9 @@ async function start() {
 
     await fastify.listen({ port, host });
 
-    console.log(`🚀 Server running at http://${host}:${port}`);
-    console.log(`📋 Health check: http://${host}:${port}/health`);
-    console.log(`📖 API docs: http://${host}:${port}/`);
+    console.log(` Server running at http://${host}:${port}`);
+    console.log(` Health check: http://${host}:${port}/health`);
+    console.log(` API docs: http://${host}:${port}/`);
 
   } catch (error) {
     console.error('❌ Error starting server:', error);
@@ -74,7 +74,7 @@ process.on('SIGINT', async () => {
   try {
     await fastify.close();
     await disconnectDatabase();
-    console.log('✅ Server shutdown complete');
+    console.log(' Server shutdown complete');
     process.exit(0);
   } catch (error) {
     console.error('❌ Error during shutdown:', error);

@@ -71,10 +71,10 @@ async function start() {
 
     await fastify.listen({ port, host });
 
-    console.log(`🚀 API Gateway running at http://${host}:${port}`);
-    console.log(`📋 Health check: http://${host}:${port}/api/health`);
-    console.log(`📖 API docs: http://${host}:${port}/`);
-    console.log(`\n🔗 Connected services:`);
+    console.log(` API Gateway running at http://${host}:${port}`);
+    console.log(` Health check: http://${host}:${port}/api/health`);
+    console.log(` API docs: http://${host}:${port}/`);
+    console.log(`\n Connected services:`);
     console.log(`   - Main API: ${process.env.MAIN_API_URL || 'http://localhost:3000'}`);
     console.log(`   - Scraping Service: ${process.env.SCRAPING_SERVICE_URL || 'http://localhost:3001'}`);
 
