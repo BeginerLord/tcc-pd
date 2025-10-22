@@ -23,6 +23,7 @@ export interface ICourseSection {
 
 export interface ICourseSchedule extends Document {
   courseId: string;
+  courseRef: mongoose.Types.ObjectId; // Referencia al documento Course
   userId: mongoose.Types.ObjectId;
   courseName?: string;
   sections: ICourseSection[];
@@ -63,6 +64,12 @@ const CourseScheduleSchema = new Schema(
   {
     courseId: {
       type: String,
+      required: true,
+      index: true,
+    },
+    courseRef: {
+      type: Schema.Types.ObjectId,
+      ref: "Course",
       required: true,
       index: true,
     },

@@ -215,6 +215,16 @@ export async function coursesRoutes(fastify: FastifyInstance) {
           });
         }
 
+        // Verificar que el curso existe y obtener su referencia
+        const course = await Course.findOne({ userId, courseId });
+
+        if (!course) {
+          return reply.code(404).send({
+            error: "Course not found",
+            message: `Course with ID ${courseId} not found. Please sync courses first.`,
+          });
+        }
+
         // Mapear las actividades para usar activityId en lugar de id
         const mappedSections = sections.map((section) => ({
           ...section,
@@ -239,6 +249,7 @@ export async function coursesRoutes(fastify: FastifyInstance) {
           {
             userId,
             courseId,
+            courseRef: course._id, // Agregar referencia al Course
             courseName,
             sections: mappedSections,
             totalActivities,
@@ -285,7 +296,7 @@ export async function coursesRoutes(fastify: FastifyInstance) {
         const courseSchedule = await CourseSchedule.findOne({
           userId,
           courseId,
-        });
+        }).populate("courseRef", "name shortname lastSyncAt");
 
         if (!courseSchedule) {
           return reply.code(404).send({
@@ -299,6 +310,7 @@ export async function coursesRoutes(fastify: FastifyInstance) {
           data: {
             courseId: courseSchedule.courseId,
             courseName: courseSchedule.courseName,
+            course: courseSchedule.courseRef, // Incluir información del curso relacionado
             sections: courseSchedule.sections,
             totalActivities: courseSchedule.totalActivities,
             lastSynced: courseSchedule.lastSynced,
@@ -328,7 +340,7 @@ export async function coursesRoutes(fastify: FastifyInstance) {
         const courseSchedule = await CourseSchedule.findOne({
           userId,
           courseId,
-        });
+        }).populate("courseRef", "name shortname");
 
         if (!courseSchedule) {
           return reply.code(404).send({
@@ -356,6 +368,7 @@ export async function coursesRoutes(fastify: FastifyInstance) {
           count: activitiesWithDates.length,
           courseId: courseSchedule.courseId,
           courseName: courseSchedule.courseName,
+          course: courseSchedule.courseRef, // Incluir información del curso relacionado
         });
       } catch (error) {
         console.error("Error fetching dated course activities:", error);
