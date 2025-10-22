@@ -81,19 +81,54 @@ export async function scrapingRoutes(fastify: FastifyInstance) {
         }
 
         // Log de la fecha que se está usando
-        const targetDate = date || new Date().toISOString().split("T")[0];
+        let targetDate = date || new Date().toISOString().split("T")[0];
         console.log(
           `📅 Fetching schedule for ${period}, date: ${targetDate}, courseId: ${
             courseId || "all"
           }`
         );
 
-        const schedule = await scraperService.scrapeSchedule(
+        let schedule = await scraperService.scrapeSchedule(
           cookies,
           period,
           courseId,
           date
         );
+
+        // Si es "day" y no hay actividades, buscar el próximo día con actividades
+        if (period === "day" && (!schedule || schedule.length === 0)) {
+          console.log("📭 No activities found for today, searching for next available day...");
+
+          const maxDaysToSearch = 30; // Buscar hasta 30 días en el futuro
+          let daysChecked = 0;
+          let currentDate = new Date(targetDate);
+
+          while (daysChecked < maxDaysToSearch) {
+            daysChecked++;
+            currentDate.setDate(currentDate.getDate() + 1);
+            const nextDateStr = currentDate.toISOString().split("T")[0];
+
+            console.log(`🔍 Checking date: ${nextDateStr} (day ${daysChecked})`);
+
+            const nextSchedule = await scraperService.scrapeSchedule(
+              cookies,
+              period,
+              courseId,
+              nextDateStr
+            );
+
+            if (nextSchedule && nextSchedule.length > 0) {
+              console.log(`✅ Found activities on ${nextDateStr}!`);
+              schedule = nextSchedule;
+              targetDate = nextDateStr;
+              break;
+            }
+          }
+
+          if (!schedule || schedule.length === 0) {
+            console.log(`⚠️ No activities found in the next ${maxDaysToSearch} days`);
+          }
+        }
 
         return reply.send({
           success: true,
