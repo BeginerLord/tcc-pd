@@ -105,3 +105,135 @@ export function useSearchCourses(query: string) {
     enabled: query.length > 0,
   });
 }
+
+/* ============================================================
+    Sincronización de actividades
+   ============================================================ */
+
+/**
+ * Hook para sincronizar actividades de un curso específico
+ * Endpoint esperado: POST /api/scraping/course/:courseId/activities
+ */
+export function useSyncCourseActivities(options?: {
+  onSuccess?: (data?: any) => void;
+  onError?: (error: Error) => void;
+}) {
+  const queryClient = useQueryClient();
+
+  // clave local para esta mutación (no tocamos coursesKeys original)
+  const mutationKey = ["courses", "syncActivity", "single"] as const;
+
+  const mutation = useMutation({
+    mutationKey,
+    // asumimos que coursesService tiene syncSingleCourse(courseId: string)
+    mutationFn: (courseId: string) => (coursesService as any).getCourseActivities(courseId),
+    onSuccess: (data: any) => {
+      try {
+        // Guardar actividades del curso en localStorage (key: activities_<courseId>)
+        if (data?.data?.courseId) {
+          localStorage.setItem(
+            `activities_${data.data.courseId}`,
+            JSON.stringify(data.data)
+          );
+        }
+
+        // invalidar cache del detalle del curso si está en uso
+        if (data?.data?.courseId) {
+          queryClient.invalidateQueries({
+            queryKey: ["courses", "detail", data.data.courseId],
+          });
+        }
+
+        console.log("✅ Actividades sincronizadas para curso:", data?.data?.courseName ?? data);
+        options?.onSuccess?.(data);
+      } catch (err) {
+        console.warn("⚠️ useSyncCourseActivities onSuccess error:", err);
+      }
+    },
+    onError: (error: any) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Error al sincronizar actividades del curso";
+      console.error("❌ useSyncCourseActivities:", message);
+      options?.onError?.(error instanceof Error ? error : new Error(message));
+    },
+  });
+
+  return {
+    // función pública para disparar la sincronización (mutate)
+    syncCourseActivities: (courseId: string) => mutation.mutate(courseId),
+    syncCourseActivitiesAsync: (courseId: string) => mutation.mutateAsync(courseId),
+    // expongo el resto del objeto mutation para control (isLoading, isError, etc.)
+    ...mutation,
+  };
+}
+
+/**
+ * Hook para sincronizar actividades de varios cursos a la vez
+ * Endpoint esperado: POST /api/scraping/courses/activities
+ *
+ * Guardará el resultado completo en localStorage con la key "allCoursesActivities".
+ */
+export function useSyncAllCourseActivities(options?: {
+  onSuccess?: (data?: any) => void;
+  onError?: (error: Error) => void;
+}) {
+  // clave local para esta mutación
+  const mutationKey = ["courses", "syncActivity", "multiple"] as const;
+
+  const mutation = useMutation({
+    mutationKey,
+    mutationFn: (courseIds: string[]) => (coursesService as any).getMultipleCoursesActivities(courseIds),
+    onSuccess: (data: any) => {
+      try {
+        // Guardar todas las actividades en localStorage
+        localStorage.setItem("allCoursesActivities", JSON.stringify(data));
+        console.log("✅ Actividades sincronizadas para varios cursos");
+        options?.onSuccess?.(data);
+      } catch (err) {
+        console.warn("⚠️ useSyncAllCourseActivities onSuccess error:", err);
+      }
+    },
+    onError: (error: any) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Error al sincronizar actividades de varios cursos";
+      console.error("❌ useSyncAllCourseActivities:", message);
+      options?.onError?.(error instanceof Error ? error : new Error(message));
+    },
+  });
+
+  return {
+    syncAllActivities: (courseIds: string[]) => mutation.mutate(courseIds),
+    syncAllActivitiesAsync: (courseIds: string[]) => mutation.mutateAsync(courseIds),
+    ...mutation,
+  };
+}
+
+export function syncAllActivitiesAsyncs(options?: {
+  onSuccess?: (data?: any) => void;
+  onError?: (error: Error) => void;
+}) {
+  const mutation = useMutation({
+    mutationKey: ["courses", "syncActivity", "multiple"],
+    mutationFn: (courseIds: string[]) =>
+      coursesService.getMultipleCoursesActivities(courseIds),
+    onSuccess: (data) => {
+      localStorage.setItem("allCoursesActivities", JSON.stringify(data));
+      console.log("✅ Actividades sincronizadas para varios cursos:", data);
+      options?.onSuccess?.(data);
+    },
+    onError: (error: any) => {
+      console.error("❌ Error al sincronizar varios cursos:", error);
+      options?.onError?.(error);
+    },
+  });
+
+  return {
+    syncAllActivities: (courseIds: string[]) => mutation.mutate(courseIds),
+    ...mutation,
+  };
+}
+

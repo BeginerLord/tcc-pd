@@ -11,6 +11,10 @@ import type {
  * Servicio de cursos
  */
 class CoursesService {
+   // ============================
+  // 🔹 SECCIÓN 1: Cursos generales
+  // ============================
+
   /**
    * Obtener todos los cursos del usuario
    * GET /api/courses
@@ -46,6 +50,22 @@ class CoursesService {
     const response = await simaApi.get<Course[]>(`/courses/search`, {
       params: { q: query },
     });
+    return response.data;
+  }
+
+  // ============================
+  // 🔹 SECCIÓN 2: Actividades (Scraping)
+  // ============================
+
+   //Obtener actividades de un curso
+  async getCourseActivities(courseId: string) {
+    const response = await simaApi.post(`/scraping/course/${courseId}/activities`);
+    return response.data;
+  }
+
+  //Obtener actividades de varios cursos
+  async getMultipleCoursesActivities(courseIds: string[]) {
+    const response = await simaApi.post(`/scraping/courses/activities`, { courseIds });
     return response.data;
   }
 }
