@@ -49,8 +49,8 @@ export default function DashboardPage() {
     }
 
     const handleCourseClick = (course: CourseInfo) => {
-        setSelectedCourse(course)
-        toast.info(`Curso seleccionado: ${course.name}`)
+    toast.info(`Abriendo ${course.name}...`)
+    router.push(`/dashboard/courses/${course.id}`)
         // Aquí podrías navegar a la página de detalles del curso
         // router.push(`/dashboard/courses/${course.id}`)
     }
