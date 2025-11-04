@@ -10,8 +10,5 @@ start "Main API" cmd /k "cd main-api && npm run dev"
 REM Start api-gateway
 start "API Gateway" cmd /k "cd api-gateway && npm run dev"
 
-REM Start frontend (Next.js)
-start "Frontend" cmd /k "cd frontend && npm run dev"
-
 echo All services are starting in separate windows...
 pause
