@@ -59,15 +59,23 @@ class CoursesService {
 
    //Obtener actividades de un curso
   async getCourseActivities(courseId: string) {
-    const response = await simaApi.post(`/scraping/course/${courseId}/activities`);
-    return response.data;
-  }
+  const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
+  const response = await simaApi.post(`/scraping/course/${courseId}/activities`, {
+    cookies
+  });
+  return response.data;
+}
+
 
   //Obtener actividades de varios cursos
   async getMultipleCoursesActivities(courseIds: string[]) {
-    const response = await simaApi.post(`/scraping/courses/activities`, { courseIds });
-    return response.data;
-  }
+  const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
+  const response = await simaApi.post(`/scraping/courses/activities`, {
+    cookies,
+    courseIds
+  });
+  return response.data;
+}
 }
 
 export const coursesService = new CoursesService();
