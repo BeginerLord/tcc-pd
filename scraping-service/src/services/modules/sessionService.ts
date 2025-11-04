@@ -3,15 +3,27 @@
  * Maneja la obtención de session keys de SIMA
  */
 
-import axios from 'axios';
-import * as cheerio from 'cheerio';
-import { CookieParser } from '../helpers';
+import axios from "axios";
+import * as cheerio from "cheerio";
+import https from "https";
+import { CookieParser } from "../helpers";
 
 export class SessionService {
   private baseUrl: string;
+  private axiosInstance;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || process.env.SIMA_BASE_URL || 'https://sima.unicartagena.edu.co';
+    this.baseUrl =
+      baseUrl ||
+      process.env.SIMA_BASE_URL ||
+      "https://sima.unicartagena.edu.co";
+
+    // Configurar axios para ignorar certificados SSL en desarrollo
+    this.axiosInstance = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+      }),
+    });
   }
 
   /**
@@ -23,19 +35,24 @@ export class SessionService {
     try {
       const cookieHeader = CookieParser.parseCookies(cookies);
 
-      const response = await axios.get(`${this.baseUrl}/my/`, {
+      const response = await this.axiosInstance.get(`${this.baseUrl}/my/`, {
         headers: {
-          'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+          Cookie: cookieHeader,
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         },
         timeout: 15000,
         maxRedirects: 0,
-        validateStatus: (status) => status >= 200 && status < 400
+        validateStatus: (status) => status >= 200 && status < 400,
       });
 
       // Si la respuesta contiene el formulario de login, la sesión no es válida
-      if (response.data.includes('loginform') || response.data.includes('login/index.php')) {
+      if (
+        response.data.includes("loginform") ||
+        response.data.includes("login/index.php")
+      ) {
         return false;
       }
 
@@ -61,43 +78,58 @@ export class SessionService {
     try {
       const cookieHeader = CookieParser.parseCookies(cookies);
 
-      const response = await axios.get(`${this.baseUrl}/calendar/view.php`, {
-        headers: {
-          'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'es-419,es;q=0.9,en;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'same-origin',
-          'Sec-Fetch-User': '?1'
-        },
-        timeout: 30000,
-        maxRedirects: 5
-      });
+      const response = await this.axiosInstance.get(
+        `${this.baseUrl}/calendar/view.php`,
+        {
+          headers: {
+            Cookie: cookieHeader,
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+            Accept:
+              "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "es-419,es;q=0.9,en;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            Connection: "keep-alive",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-Fetch-User": "?1",
+          },
+          timeout: 30000,
+          maxRedirects: 5,
+        }
+      );
 
       // Verificar si fue redirigido al login
-      if (response.request?.path?.includes('/login') || response.data.includes('loginform')) {
-        throw new Error('Session expired or invalid cookies');
+      if (
+        response.request?.path?.includes("/login") ||
+        response.data.includes("loginform")
+      ) {
+        throw new Error("Session expired or invalid cookies");
       }
 
       const $ = cheerio.load(response.data);
-      const sesskey = $('input[name="sesskey"]').attr('value') ||
-                      $('[data-sesskey]').attr('data-sesskey') ||
-                      response.data.match(/sesskey["\']?\s*[:=]\s*["\']?([^"',\s]+)/i)?.[1];
+      const sesskey =
+        $('input[name="sesskey"]').attr("value") ||
+        $("[data-sesskey]").attr("data-sesskey") ||
+        response.data.match(/sesskey["\']?\s*[:=]\s*["\']?([^"',\s]+)/i)?.[1];
 
       if (!sesskey) {
-        throw new Error('Session key not found');
+        throw new Error("Session key not found");
       }
 
       return sesskey;
     } catch (error) {
-      if (axios.isAxiosError(error) && error.message.includes('redirect')) {
-        throw new Error('Session expired or invalid cookies. Too many redirects.');
+      if (axios.isAxiosError(error) && error.message.includes("redirect")) {
+        throw new Error(
+          "Session expired or invalid cookies. Too many redirects."
+        );
       }
-      throw new Error(`Failed to get session key: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to get session key: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   }
 }

@@ -5,6 +5,7 @@
 
 import axios from "axios";
 import * as cheerio from "cheerio";
+import https from "https";
 import { CookieParser } from "../helpers";
 
 export interface CourseActivity {
@@ -38,12 +39,20 @@ export interface CourseSchedule {
 
 export class CourseActivitiesService {
   private baseUrl: string;
+  private axiosInstance;
 
   constructor(baseUrl?: string) {
     this.baseUrl =
       baseUrl ||
       process.env.SIMA_BASE_URL ||
       "https://sima.unicartagena.edu.co";
+
+    // Configurar axios para ignorar certificados SSL en desarrollo
+    this.axiosInstance = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+      }),
+    });
   }
 
   /**
@@ -60,7 +69,7 @@ export class CourseActivitiesService {
 
       // Obtener nombre del curso
       const mainUrl = `${this.baseUrl}/course/view.php?id=${courseId}`;
-      const mainResponse = await axios.get(mainUrl, {
+      const mainResponse = await this.axiosInstance.get(mainUrl, {
         headers: {
           Cookie: cookieHeader,
           "User-Agent":
@@ -84,7 +93,7 @@ export class CourseActivitiesService {
         const sectionUrl = `${this.baseUrl}/course/view.php?id=${courseId}&section=${sectionNum}`;
 
         try {
-          const sectionResponse = await axios.get(sectionUrl, {
+          const sectionResponse = await this.axiosInstance.get(sectionUrl, {
             headers: {
               Cookie: cookieHeader,
               "User-Agent":

@@ -3,16 +3,28 @@
  * Maneja la extracción de fechas de apertura/cierre de actividades específicas
  */
 
-import axios from 'axios';
-import * as cheerio from 'cheerio';
-import { CookieParser } from '../helpers';
-import { CalendarEvent, Activity, ScheduleData } from '../../types';
+import axios from "axios";
+import * as cheerio from "cheerio";
+import https from "https";
+import { CookieParser } from "../helpers";
+import { CalendarEvent, Activity, ScheduleData } from "../../types";
 
 export class ActivitiesService {
   private baseUrl: string;
+  private axiosInstance;
 
   constructor(baseUrl?: string) {
-    this.baseUrl = baseUrl || process.env.SIMA_BASE_URL || 'https://sima.unicartagena.edu.co';
+    this.baseUrl =
+      baseUrl ||
+      process.env.SIMA_BASE_URL ||
+      "https://sima.unicartagena.edu.co";
+
+    // Configurar axios para ignorar certificados SSL en desarrollo
+    this.axiosInstance = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+      }),
+    });
   }
 
   /**
@@ -21,31 +33,39 @@ export class ActivitiesService {
    * @param activityUrl URL de la actividad
    * @returns Objeto con fechas de apertura y cierre
    */
-  async getActivityDates(cookies: string[], activityUrl: string): Promise<{ apertura?: string; cierre?: string }> {
+  async getActivityDates(
+    cookies: string[],
+    activityUrl: string
+  ): Promise<{ apertura?: string; cierre?: string }> {
     try {
       const cookieHeader = CookieParser.parseCookies(cookies);
 
       // Si la URL es de tipo /mod/assign/view.php, intentar con action=editsubmission
       let urlToFetch = activityUrl;
-      if (activityUrl.includes('/mod/assign/view.php') && !activityUrl.includes('action=')) {
-        urlToFetch = activityUrl.includes('?')
+      if (
+        activityUrl.includes("/mod/assign/view.php") &&
+        !activityUrl.includes("action=")
+      ) {
+        urlToFetch = activityUrl.includes("?")
           ? `${activityUrl}&action=editsubmission`
           : `${activityUrl}?action=editsubmission`;
       }
 
-      const response = await axios.get(urlToFetch, {
+      const response = await this.axiosInstance.get(urlToFetch, {
         headers: {
-          'Cookie': cookieHeader,
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-          'Accept-Language': 'es-419,es;q=0.5',
-          'Cache-Control': 'max-age=0',
-          'Sec-Fetch-Dest': 'document',
-          'Sec-Fetch-Mode': 'navigate',
-          'Sec-Fetch-Site': 'same-origin',
-          'Sec-Fetch-User': '?1'
+          Cookie: cookieHeader,
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+          "Accept-Language": "es-419,es;q=0.5",
+          "Cache-Control": "max-age=0",
+          "Sec-Fetch-Dest": "document",
+          "Sec-Fetch-Mode": "navigate",
+          "Sec-Fetch-Site": "same-origin",
+          "Sec-Fetch-User": "?1",
         },
-        maxRedirects: 5
+        maxRedirects: 5,
       });
 
       const $ = cheerio.load(response.data);
@@ -56,17 +76,17 @@ export class ActivitiesService {
 
       if (activityDatesDiv.length > 0) {
         // Buscar fecha de apertura y cierre
-        activityDatesDiv.find('div').each((i, el) => {
+        activityDatesDiv.find("div").each((i, el) => {
           const text = $(el).text();
-          const strongText = $(el).find('strong').text().trim();
+          const strongText = $(el).find("strong").text().trim();
 
-          if (strongText === 'Apertura:') {
-            const aperturaText = text.replace('Apertura:', '').trim();
+          if (strongText === "Apertura:") {
+            const aperturaText = text.replace("Apertura:", "").trim();
             if (aperturaText) {
               activityDates.apertura = aperturaText;
             }
-          } else if (strongText === 'Cierre:') {
-            const cierreText = text.replace('Cierre:', '').trim();
+          } else if (strongText === "Cierre:") {
+            const cierreText = text.replace("Cierre:", "").trim();
             if (cierreText) {
               activityDates.cierre = cierreText;
             }
@@ -76,7 +96,10 @@ export class ActivitiesService {
 
       return activityDates;
     } catch (error) {
-      console.error(`Error extracting activity dates from ${activityUrl}:`, error);
+      console.error(
+        `Error extracting activity dates from ${activityUrl}:`,
+        error
+      );
       return {};
     }
   }
@@ -87,7 +110,10 @@ export class ActivitiesService {
    * @param events Array de eventos del calendario
    * @returns Array de eventos enriquecidos
    */
-  async enhanceEventsWithActivityDates(cookies: string[], events: CalendarEvent[]): Promise<CalendarEvent[]> {
+  async enhanceEventsWithActivityDates(
+    cookies: string[],
+    events: CalendarEvent[]
+  ): Promise<CalendarEvent[]> {
     const enhancedEvents: CalendarEvent[] = [];
 
     for (const event of events) {
@@ -100,21 +126,28 @@ export class ActivitiesService {
       }
 
       // Obtener fechas para tareas, cuestionarios y otros tipos de actividades
-      if (urlToFetch && (
-        event.eventtype === 'assign' ||
-        event.eventtype === 'assignment' ||
-        event.eventtype === 'quiz' ||
-        event.name.toLowerCase().includes('evaluación') ||
-        event.metadata?.actionType?.toLowerCase().includes('tarea') ||
-        event.metadata?.actionType?.toLowerCase().includes('cuestionario')
-      )) {
+      if (
+        urlToFetch &&
+        (event.eventtype === "assign" ||
+          event.eventtype === "assignment" ||
+          event.eventtype === "quiz" ||
+          event.name.toLowerCase().includes("evaluación") ||
+          event.metadata?.actionType?.toLowerCase().includes("tarea") ||
+          event.metadata?.actionType?.toLowerCase().includes("cuestionario"))
+      ) {
         try {
-          const activityDates = await this.getActivityDates(cookies, urlToFetch);
+          const activityDates = await this.getActivityDates(
+            cookies,
+            urlToFetch
+          );
           if (activityDates.apertura || activityDates.cierre) {
             enhancedEvent.activityDates = activityDates;
           }
         } catch (error) {
-          console.error(`Failed to get activity dates for ${event.name}:`, error);
+          console.error(
+            `Failed to get activity dates for ${event.name}:`,
+            error
+          );
         }
       }
 
@@ -130,7 +163,10 @@ export class ActivitiesService {
    * @param courses Array de cursos del usuario (opcional, para enriquecer datos)
    * @returns Array de ScheduleData agrupados por fecha
    */
-  convertEventsToSchedule(events: CalendarEvent[], courses?: any[]): ScheduleData[] {
+  convertEventsToSchedule(
+    events: CalendarEvent[],
+    courses?: any[]
+  ): ScheduleData[] {
     const scheduleData: ScheduleData[] = [];
     const eventsGroupedByDate = new Map<string, Activity[]>();
 
@@ -154,10 +190,10 @@ export class ActivitiesService {
       } else {
         // Usar el timestamp
         const eventDate = new Date(event.timestart * 1000);
-        dateKey = eventDate.toISOString().split('T')[0];
-        startTime = eventDate.toLocaleTimeString('es-ES', {
-          hour: '2-digit',
-          minute: '2-digit'
+        dateKey = eventDate.toISOString().split("T")[0];
+        startTime = eventDate.toLocaleTimeString("es-ES", {
+          hour: "2-digit",
+          minute: "2-digit",
         });
       }
 
@@ -167,12 +203,20 @@ export class ActivitiesService {
 
       // Enriquecer información del curso si solo tenemos el ID
       let courseInfo = event.course;
-      if (courseInfo && courseInfo.id && !courseInfo.fullname && coursesMap.has(courseInfo.id)) {
+      if (
+        courseInfo &&
+        courseInfo.id &&
+        !courseInfo.fullname &&
+        coursesMap.has(courseInfo.id)
+      ) {
         const fullCourseData = coursesMap.get(courseInfo.id);
         courseInfo = {
           id: courseInfo.id,
           fullname: fullCourseData.fullname || fullCourseData.name,
-          shortname: fullCourseData.shortname || fullCourseData.fullname?.split('-').pop()?.trim() || ''
+          shortname:
+            fullCourseData.shortname ||
+            fullCourseData.fullname?.split("-").pop()?.trim() ||
+            "",
         };
       }
 
@@ -180,18 +224,22 @@ export class ActivitiesService {
         id: event.id,
         title: event.name,
         startTime: startTime,
-        endTime: event.timeduration > 0 ?
-          new Date((event.timestart + event.timeduration) * 1000).toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }) : undefined,
+        endTime:
+          event.timeduration > 0
+            ? new Date(
+                (event.timestart + event.timeduration) * 1000
+              ).toLocaleTimeString("es-ES", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : undefined,
         description: event.description,
         location: event.location,
         type: event.eventtype,
         activityDates: event.activityDates,
         course: courseInfo,
         url: event.url,
-        metadata: event.metadata
+        metadata: event.metadata,
       };
 
       eventsGroupedByDate.get(dateKey)!.push(activity);
@@ -201,7 +249,9 @@ export class ActivitiesService {
     for (const [date, activities] of eventsGroupedByDate.entries()) {
       scheduleData.push({
         date,
-        activities: activities.sort((a, b) => a.startTime.localeCompare(b.startTime))
+        activities: activities.sort((a, b) =>
+          a.startTime.localeCompare(b.startTime)
+        ),
       });
     }
 
@@ -215,21 +265,30 @@ export class ActivitiesService {
    */
   private parseDateToISO(dateStr: string): string {
     const months: { [key: string]: string } = {
-      'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
-      'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
-      'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
+      enero: "01",
+      febrero: "02",
+      marzo: "03",
+      abril: "04",
+      mayo: "05",
+      junio: "06",
+      julio: "07",
+      agosto: "08",
+      septiembre: "09",
+      octubre: "10",
+      noviembre: "11",
+      diciembre: "12",
     };
 
     // Formato: "sábado, 11 de octubre de 2025"
     const match = dateStr.match(/(\d+)\s+de\s+(\w+)\s+de\s+(\d+)/);
     if (match) {
-      const day = match[1].padStart(2, '0');
-      const month = months[match[2].toLowerCase()] || '01';
+      const day = match[1].padStart(2, "0");
+      const month = months[match[2].toLowerCase()] || "01";
       const year = match[3];
       return `${year}-${month}-${day}`;
     }
 
     // Fallback: usar fecha actual
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }
 }
