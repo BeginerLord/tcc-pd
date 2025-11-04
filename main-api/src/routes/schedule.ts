@@ -63,6 +63,62 @@ export async function scheduleRoutes(fastify: FastifyInstance) {
   // Obtener historial de horarios guardados
   fastify.get<{ Params: HistoryParams }>(
     '/schedule/history/:days',
+    {
+      schema: {
+        tags: ['schedule'],
+        description: 'Get schedule history for the specified number of days',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          required: ['days'],
+          properties: {
+            days: {
+              type: 'string',
+              description: 'Number of days to look back (1-365)',
+              pattern: '^[0-9]+$'
+            }
+          }
+        },
+        response: {
+          200: {
+            description: 'Schedule history',
+            type: 'object',
+            properties: {
+              days: { type: 'number' },
+              count: { type: 'number' },
+              schedules: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    courseId: { type: 'string' },
+                    date: { type: 'string' },
+                    activities: { type: 'array' },
+                    lastUpdated: { type: 'string', format: 'date-time' }
+                  }
+                }
+              }
+            }
+          },
+          400: {
+            description: 'Invalid days parameter',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          },
+          500: {
+            description: 'Failed to fetch history',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (request: FastifyRequest<{ Params: HistoryParams }>, reply: FastifyReply) => {
       try {
         const { userId } = await authenticate(request);
@@ -108,6 +164,31 @@ export async function scheduleRoutes(fastify: FastifyInstance) {
   // Limpiar caché de horarios
   fastify.delete(
     '/schedule/cache',
+    {
+      schema: {
+        tags: ['schedule'],
+        description: 'Clear schedule cache older than one week',
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: {
+            description: 'Cache cleared successfully',
+            type: 'object',
+            properties: {
+              message: { type: 'string' },
+              deletedCount: { type: 'number' }
+            }
+          },
+          500: {
+            description: 'Failed to clear cache',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const { userId } = await authenticate(request);

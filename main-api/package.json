@@ -12,8 +12,10 @@
   },
   "packageManager": "pnpm@8.0.0",
   "dependencies": {
+    "@fastify/cors": "^8.0.0",
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/swagger-ui": "^4.2.0",
     "@types/cheerio": "^0.22.35",
-  "@fastify/cors": "^8.0.0",
     "axios": "^1.12.2",
     "bcrypt": "^5.1.1",
     "cheerio": "^1.1.2",

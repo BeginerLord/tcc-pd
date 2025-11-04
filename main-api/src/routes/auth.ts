@@ -21,7 +21,63 @@ interface AuthTokenPayload {
 export async function authRoutes(fastify: FastifyInstance) {
   const authService = new AuthService();
 
-  fastify.post('/register', async (request: FastifyRequest<{ Body: LoginRequestBody }>, reply: FastifyReply) => {
+  fastify.post('/register', {
+    schema: {
+      tags: ['auth'],
+      description: 'Register a new user with credentials and SIMA credentials',
+      body: {
+        type: 'object',
+        required: ['username', 'password', 'simaUsername', 'simaPassword'],
+        properties: {
+          username: { type: 'string', description: 'Username for the application' },
+          password: { type: 'string', description: 'Password for the application' },
+          simaUsername: { type: 'string', description: 'Username for SIMA system' },
+          simaPassword: { type: 'string', description: 'Password for SIMA system' }
+        }
+      },
+      response: {
+        200: {
+          description: 'Successful registration',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            token: { type: 'string', description: 'JWT authentication token' },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                username: { type: 'string' }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Missing required fields',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            error: { type: 'string' }
+          }
+        },
+        401: {
+          description: 'SIMA authentication failed',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            error: { type: 'string' }
+          }
+        },
+        409: {
+          description: 'User already exists',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, async (request: FastifyRequest<{ Body: LoginRequestBody }>, reply: FastifyReply) => {
     try {
       const { username, password, simaUsername, simaPassword } = request.body;
 
@@ -99,7 +155,53 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.post('/login', async (request: FastifyRequest<{ Body: { username: string; password: string } }>, reply: FastifyReply) => {
+  fastify.post('/login', {
+    schema: {
+      tags: ['auth'],
+      description: 'Login with username and password',
+      body: {
+        type: 'object',
+        required: ['username', 'password'],
+        properties: {
+          username: { type: 'string', description: 'Username' },
+          password: { type: 'string', description: 'Password' }
+        }
+      },
+      response: {
+        200: {
+          description: 'Successful login',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            token: { type: 'string', description: 'JWT authentication token' },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                username: { type: 'string' }
+              }
+            }
+          }
+        },
+        400: {
+          description: 'Missing credentials',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            error: { type: 'string' }
+          }
+        },
+        401: {
+          description: 'Invalid credentials or session expired',
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, async (request: FastifyRequest<{ Body: { username: string; password: string } }>, reply: FastifyReply) => {
     try {
       const { username, password } = request.body;
 
@@ -196,7 +298,51 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.get('/validate', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/validate', {
+    schema: {
+      tags: ['auth'],
+      description: 'Validate JWT token and check session status',
+      security: [{ bearerAuth: [] }],
+      headers: {
+        type: 'object',
+        properties: {
+          authorization: { type: 'string', description: 'Bearer token' }
+        },
+        required: ['authorization']
+      },
+      response: {
+        200: {
+          description: 'Token is valid',
+          type: 'object',
+          properties: {
+            valid: { type: 'boolean' },
+            success: { type: 'boolean' },
+            user: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                username: { type: 'string' },
+                cookies: {
+                  type: 'array',
+                  items: { type: 'string' }
+                }
+              }
+            },
+            sessionValid: { type: 'boolean' }
+          }
+        },
+        401: {
+          description: 'Invalid or missing token',
+          type: 'object',
+          properties: {
+            valid: { type: 'boolean' },
+            success: { type: 'boolean' },
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const token = request.headers.authorization?.replace('Bearer ', '');
 

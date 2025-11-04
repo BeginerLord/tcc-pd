@@ -70,6 +70,43 @@ export async function coursesRoutes(fastify: FastifyInstance) {
   // Obtener cursos del usuario
   fastify.get(
     "/courses",
+    {
+      schema: {
+        tags: ['courses'],
+        description: 'Get all courses for the authenticated user',
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: {
+            description: 'List of courses',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              data: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' },
+                    shortname: { type: 'string' },
+                    lastSynced: { type: 'string', format: 'date-time' }
+                  }
+                }
+              },
+              count: { type: 'number' }
+            }
+          },
+          401: {
+            description: 'Authentication failed',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const userId = await authenticate(request);
@@ -99,6 +136,63 @@ export async function coursesRoutes(fastify: FastifyInstance) {
   // Sincronizar cursos (llamado desde el API Gateway)
   fastify.post<{ Body: SyncCoursesBody }>(
     "/courses/sync",
+    {
+      schema: {
+        tags: ['courses'],
+        description: 'Synchronize courses from SIMA system',
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: 'object',
+          required: ['courses'],
+          properties: {
+            courses: {
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['id', 'name', 'shortname'],
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                  shortname: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        response: {
+          200: {
+            description: 'Courses synced successfully',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              message: { type: 'string' },
+              courses: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    name: { type: 'string' },
+                    shortname: { type: 'string' },
+                    lastSynced: { type: 'string', format: 'date-time' }
+                  }
+                }
+              },
+              coursesCount: { type: 'number' },
+              count: { type: 'number' }
+            }
+          },
+          400: {
+            description: 'Invalid request',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (
       request: FastifyRequest<{ Body: SyncCoursesBody }>,
       reply: FastifyReply
@@ -163,6 +257,40 @@ export async function coursesRoutes(fastify: FastifyInstance) {
   // Obtener curso específico
   fastify.get<{ Params: CourseParams }>(
     "/courses/:courseId",
+    {
+      schema: {
+        tags: ['courses'],
+        description: 'Get a specific course by ID',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          required: ['courseId'],
+          properties: {
+            courseId: { type: 'string', description: 'Course ID' }
+          }
+        },
+        response: {
+          200: {
+            description: 'Course details',
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              shortname: { type: 'string' },
+              lastSynced: { type: 'string', format: 'date-time' }
+            }
+          },
+          404: {
+            description: 'Course not found',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (
       request: FastifyRequest<{ Params: CourseParams }>,
       reply: FastifyReply
@@ -199,6 +327,91 @@ export async function coursesRoutes(fastify: FastifyInstance) {
   // Sincronizar actividades de un curso
   fastify.post<{ Body: SyncCourseActivitiesBody }>(
     "/courses/activities/sync",
+    {
+      schema: {
+        tags: ['courses'],
+        description: 'Synchronize course activities and sections',
+        security: [{ bearerAuth: [] }],
+        body: {
+          type: 'object',
+          required: ['courseId', 'sections', 'totalActivities'],
+          properties: {
+            courseId: { type: 'string' },
+            courseName: { type: 'string' },
+            sections: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  sectionNumber: { type: 'number' },
+                  sectionName: { type: 'string' },
+                  activities: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        activityId: { type: 'string' },
+                        name: { type: 'string' },
+                        type: { type: 'string' },
+                        section: { type: 'number' },
+                        sectionName: { type: 'string' },
+                        url: { type: 'string' },
+                        dates: {
+                          type: 'object',
+                          properties: {
+                            apertura: { type: 'string' },
+                            cierre: { type: 'string' }
+                          }
+                        },
+                        icon: { type: 'string' },
+                        description: { type: 'string' }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            totalActivities: { type: 'number' }
+          }
+        },
+        response: {
+          200: {
+            description: 'Course activities synced successfully',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              message: { type: 'string' },
+              data: {
+                type: 'object',
+                properties: {
+                  courseId: { type: 'string' },
+                  courseName: { type: 'string' },
+                  totalActivities: { type: 'number' },
+                  sectionsCount: { type: 'number' },
+                  lastSynced: { type: 'string', format: 'date-time' }
+                }
+              }
+            }
+          },
+          400: {
+            description: 'Invalid request',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          },
+          404: {
+            description: 'Course not found',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (
       request: FastifyRequest<{ Body: SyncCourseActivitiesBody }>,
       reply: FastifyReply
@@ -285,6 +498,48 @@ export async function coursesRoutes(fastify: FastifyInstance) {
   // Obtener actividades de un curso
   fastify.get<{ Params: CourseParams }>(
     "/courses/:courseId/activities",
+    {
+      schema: {
+        tags: ['courses'],
+        description: 'Get all activities for a specific course',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          required: ['courseId'],
+          properties: {
+            courseId: { type: 'string', description: 'Course ID' }
+          }
+        },
+        response: {
+          200: {
+            description: 'Course activities',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              data: {
+                type: 'object',
+                properties: {
+                  courseId: { type: 'string' },
+                  courseName: { type: 'string' },
+                  course: { type: 'object' },
+                  sections: { type: 'array' },
+                  totalActivities: { type: 'number' },
+                  lastSynced: { type: 'string', format: 'date-time' }
+                }
+              }
+            }
+          },
+          404: {
+            description: 'Course activities not found',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (
       request: FastifyRequest<{ Params: CourseParams }>,
       reply: FastifyReply
@@ -329,6 +584,64 @@ export async function coursesRoutes(fastify: FastifyInstance) {
   // Obtener todas las actividades con fechas de un curso
   fastify.get<{ Params: CourseParams }>(
     "/courses/:courseId/activities/dated",
+    {
+      schema: {
+        tags: ['courses'],
+        description: 'Get all activities with dates (apertura/cierre) for a specific course',
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          required: ['courseId'],
+          properties: {
+            courseId: { type: 'string', description: 'Course ID' }
+          }
+        },
+        response: {
+          200: {
+            description: 'Activities with dates',
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              data: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    activityId: { type: 'string' },
+                    name: { type: 'string' },
+                    type: { type: 'string' },
+                    section: { type: 'number' },
+                    sectionName: { type: 'string' },
+                    url: { type: 'string' },
+                    dates: {
+                      type: 'object',
+                      properties: {
+                        apertura: { type: 'string' },
+                        cierre: { type: 'string' }
+                      }
+                    },
+                    icon: { type: 'string' },
+                    description: { type: 'string' }
+                  }
+                }
+              },
+              count: { type: 'number' },
+              courseId: { type: 'string' },
+              courseName: { type: 'string' },
+              course: { type: 'object' }
+            }
+          },
+          404: {
+            description: 'Course activities not found',
+            type: 'object',
+            properties: {
+              error: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     async (
       request: FastifyRequest<{ Params: CourseParams }>,
       reply: FastifyReply

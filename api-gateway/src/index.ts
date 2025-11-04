@@ -3,6 +3,9 @@ import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import swagger from '@fastify/swagger';
+import swaggerUI from '@fastify/swagger-ui';
+import proxy from '@fastify/http-proxy';
 import { gatewayRoutes } from './routes/gateway';
 
 const fastify: FastifyInstance = Fastify({
@@ -26,6 +29,54 @@ async function start() {
     await fastify.register(rateLimit, {
       max: parseInt(process.env.RATE_LIMIT_MAX || '100'),
       timeWindow: '15 minutes'
+    });
+
+    // Swagger configuration
+    await fastify.register(swagger, {
+      openapi: {
+        info: {
+          title: 'API Gateway',
+          description: 'Gateway para sistema distribuido SIMA Scraper - Orquestación de microservicios',
+          version: '1.0.0'
+        },
+        servers: [
+          {
+            url: `http://localhost:${process.env.GATEWAY_PORT || 8080}`,
+            description: 'Gateway server'
+          }
+        ],
+        tags: [
+          { name: 'auth', description: 'Authentication endpoints' },
+          { name: 'courses', description: 'Course management endpoints' },
+          { name: 'schedule', description: 'Schedule and calendar endpoints' },
+          { name: 'health', description: 'Health check endpoints' }
+        ],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT'
+            }
+          }
+        }
+      }
+    });
+
+    await fastify.register(swaggerUI, {
+      routePrefix: '/api/docs',
+      uiConfig: {
+        docExpansion: 'list',
+        deepLinking: true
+      },
+      staticCSP: true
+    });
+
+    // Proxy para la documentación del Main API
+    await fastify.register(proxy, {
+      upstream: process.env.MAIN_API_URL || 'http://localhost:4000',
+      prefix: '/docs',
+      rewritePrefix: '/docs'
     });
 
     // Registrar rutas del gateway
@@ -73,9 +124,11 @@ async function start() {
 
     console.log(` API Gateway running at http://${host}:${port}`);
     console.log(` Health check: http://${host}:${port}/api/health`);
-    console.log(` API docs: http://${host}:${port}/`);
+    console.log(` API info: http://${host}:${port}/`);
+    console.log(` Gateway Swagger UI: http://${host}:${port}/api/docs`);
+    console.log(` Main API Swagger (proxied): http://${host}:${port}/docs`);
     console.log(`\n Connected services:`);
-    console.log(`   - Main API: ${process.env.MAIN_API_URL || 'http://localhost:3000'}`);
+    console.log(`   - Main API: ${process.env.MAIN_API_URL || 'http://localhost:4000'}`);
     console.log(`   - Scraping Service: ${process.env.SCRAPING_SERVICE_URL || 'http://localhost:3001'}`);
 
   } catch (error) {

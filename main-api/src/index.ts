@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import Fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
+import swagger from '@fastify/swagger';
+import swaggerUI from '@fastify/swagger-ui';
 import { connectDatabase, disconnectDatabase } from './utils/database';
 import { authRoutes } from './routes/auth';
 import { scheduleRoutes } from './routes/schedule';
@@ -22,15 +24,115 @@ async function start() {
       credentials: true
     });
 
+    // Swagger configuration
+    await fastify.register(swagger, {
+      openapi: {
+        info: {
+          title: 'Main API',
+          description: 'Authentication and database management service for TCC-PD',
+          version: '1.0.0'
+        },
+        servers: [
+          {
+            url: `http://localhost:${process.env.PORT || 3000}`,
+            description: 'Development server'
+          }
+        ],
+        tags: [
+          { name: 'auth', description: 'Authentication endpoints' },
+          { name: 'courses', description: 'Course management endpoints' },
+          { name: 'schedule', description: 'Schedule management endpoints' },
+          { name: 'health', description: 'Health check endpoints' }
+        ],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT'
+            }
+          }
+        }
+      }
+    });
+
+    await fastify.register(swaggerUI, {
+      routePrefix: '/docs',
+      uiConfig: {
+        docExpansion: 'list',
+        deepLinking: true
+      },
+      staticCSP: true
+    });
+
     await fastify.register(authRoutes, { prefix: '/api/auth' });
     await fastify.register(scheduleRoutes, { prefix: '/api' });
     await fastify.register(coursesRoutes, { prefix: '/api' });
 
-    fastify.get('/health', async () => {
+    fastify.get('/health', {
+      schema: {
+        tags: ['health'],
+        description: 'Health check endpoint',
+        response: {
+          200: {
+            description: 'Service is healthy',
+            type: 'object',
+            properties: {
+              status: { type: 'string', example: 'ok' },
+              timestamp: { type: 'string', format: 'date-time' }
+            }
+          }
+        }
+      }
+    }, async () => {
       return { status: 'ok', timestamp: new Date().toISOString() };
     });
 
-    fastify.get('/', async () => {
+    fastify.get('/', {
+      schema: {
+        tags: ['health'],
+        description: 'API information and available endpoints',
+        response: {
+          200: {
+            description: 'API information',
+            type: 'object',
+            properties: {
+              message: { type: 'string' },
+              version: { type: 'string' },
+              description: { type: 'string' },
+              endpoints: {
+                type: 'object',
+                properties: {
+                  auth: {
+                    type: 'object',
+                    properties: {
+                      register: { type: 'string' },
+                      login: { type: 'string' },
+                      validate: { type: 'string' }
+                    }
+                  },
+                  courses: {
+                    type: 'object',
+                    properties: {
+                      getCourses: { type: 'string' },
+                      syncCourses: { type: 'string' },
+                      getCourse: { type: 'string' }
+                    }
+                  },
+                  schedule: {
+                    type: 'object',
+                    properties: {
+                      getHistory: { type: 'string' },
+                      clearCache: { type: 'string' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }, async () => {
       return {
         message: 'Main API Service',
         version: '1.0.0',
@@ -62,6 +164,7 @@ async function start() {
     console.log(` Server running at http://${host}:${port}`);
     console.log(` Health check: http://${host}:${port}/health`);
     console.log(` API docs: http://${host}:${port}/`);
+    console.log(` Swagger UI: http://${host}:${port}/docs`);
 
   } catch (error) {
     console.error('❌ Error starting server:', error);
