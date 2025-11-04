@@ -5,6 +5,7 @@
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import https from 'https';
 import { CalendarEvent } from '../../types';
 import { CookieParser, TimeParser, EventTypeDetector } from '../helpers';
 import { SessionService } from './sessionService';
@@ -12,10 +13,18 @@ import { SessionService } from './sessionService';
 export class CalendarService {
   private baseUrl: string;
   private sessionService: SessionService;
+  private axiosInstance;
 
   constructor(baseUrl?: string) {
     this.baseUrl = baseUrl || process.env.SIMA_BASE_URL || 'https://sima.unicartagena.edu.co';
     this.sessionService = new SessionService(this.baseUrl);
+    
+    // Configurar axios para ignorar certificados SSL en desarrollo
+    this.axiosInstance = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false
+      })
+    });
   }
 
   /**
@@ -46,7 +55,7 @@ export class CalendarService {
         url += `&time=${timestamp}`;
       }
 
-      const response = await axios.get(url, {
+      const response = await this.axiosInstance.get(url, {
         headers: {
           'Cookie': cookieHeader,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
@@ -114,7 +123,7 @@ export class CalendarService {
         }
       }];
 
-      const response = await axios.post(
+      const response = await this.axiosInstance.post(
         `${this.baseUrl}/lib/ajax/service.php?sesskey=${sesskey}&info=core_calendar_get_calendar_upcoming_view`,
         payload,
         {

@@ -5,14 +5,23 @@
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import https from 'https';
 import { CookieParser } from '../helpers';
 import { CalendarEvent, Activity, ScheduleData } from '../../types';
 
 export class ActivitiesService {
   private baseUrl: string;
+  private axiosInstance;
 
   constructor(baseUrl?: string) {
     this.baseUrl = baseUrl || process.env.SIMA_BASE_URL || 'https://sima.unicartagena.edu.co';
+    
+    // Configurar axios para ignorar certificados SSL en desarrollo
+    this.axiosInstance = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false
+      })
+    });
   }
 
   /**
@@ -33,7 +42,7 @@ export class ActivitiesService {
           : `${activityUrl}?action=editsubmission`;
       }
 
-      const response = await axios.get(urlToFetch, {
+      const response = await this.axiosInstance.get(urlToFetch, {
         headers: {
           'Cookie': cookieHeader,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
