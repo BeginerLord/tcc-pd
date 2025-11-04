@@ -46,12 +46,12 @@ export class CourseActivitiesService {
       baseUrl ||
       process.env.SIMA_BASE_URL ||
       "https://sima.unicartagena.edu.co";
-    
+
     // Configurar axios para ignorar certificados SSL en desarrollo
     this.axiosInstance = axios.create({
       httpsAgent: new https.Agent({
-        rejectUnauthorized: false
-      })
+        rejectUnauthorized: false,
+      }),
     });
   }
 
