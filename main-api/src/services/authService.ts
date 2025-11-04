@@ -18,17 +18,20 @@ export class AuthService {
       );
     }
     this.baseUrl = process.env.SIMA_BASE_URL;
-    
+
     // In development, allow self-signed certificates
     this.httpsAgent = new https.Agent({
-      rejectUnauthorized: process.env.NODE_ENV === 'production',
+      rejectUnauthorized: process.env.NODE_ENV === "production",
     });
   }
 
   async getLoginToken(): Promise<{ token: string; cookies: string[] }> {
     try {
-      console.log("🔑 Fetching login token from:", `${this.baseUrl}/login/index.php`);
-      
+      console.log(
+        "🔑 Fetching login token from:",
+        `${this.baseUrl}/login/index.php`
+      );
+
       const response: AxiosResponse = await axios.get(
         `${this.baseUrl}/login/index.php`,
         {
