@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from "axios";
+import https from "https";
 import * as cheerio from "cheerio";
 import {
   LoginCredentials,
@@ -8,6 +9,7 @@ import {
 
 export class AuthService {
   private baseUrl: string;
+  private httpsAgent: https.Agent;
 
   constructor() {
     if (!process.env.SIMA_BASE_URL) {
@@ -16,10 +18,20 @@ export class AuthService {
       );
     }
     this.baseUrl = process.env.SIMA_BASE_URL;
+
+    // In development, allow self-signed certificates
+    this.httpsAgent = new https.Agent({
+      rejectUnauthorized: process.env.NODE_ENV === "production",
+    });
   }
 
   async getLoginToken(): Promise<{ token: string; cookies: string[] }> {
     try {
+      console.log(
+        "🔑 Fetching login token from:",
+        `${this.baseUrl}/login/index.php`
+      );
+
       const response: AxiosResponse = await axios.get(
         `${this.baseUrl}/login/index.php`,
         {
@@ -27,23 +39,35 @@ export class AuthService {
             "User-Agent":
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
           },
+          httpsAgent: this.httpsAgent,
         }
+      );
+
+      console.log(
+        "✅ Got response from SIMA login page, status:",
+        response.status
       );
 
       const $ = cheerio.load(response.data);
       const loginToken = $('input[name="logintoken"]').attr("value");
 
       if (!loginToken) {
+        console.log("❌ Login token not found in page");
+        console.log("📄 Page HTML preview:", response.data.substring(0, 500));
         throw new Error("Login token not found");
       }
 
       const cookies = response.headers["set-cookie"] || [];
+
+      console.log("✅ Login token found:", loginToken.substring(0, 20) + "...");
+      console.log("🍪 Cookies received:", cookies.length);
 
       return {
         token: loginToken,
         cookies: cookies,
       };
     } catch (error) {
+      console.error("❌ getLoginToken error:", error);
       throw new Error(
         `Failed to get login token: ${
           error instanceof Error ? error.message : "Unknown error"
@@ -55,8 +79,14 @@ export class AuthService {
   async login(credentials: LoginCredentials): Promise<SimaLoginResponse> {
     try {
       console.log("🔐 Attempting SIMA login for user:", credentials.username);
+      console.log("🔐 Password length:", credentials.password?.length || 0);
+      console.log("🔐 Base URL:", this.baseUrl);
+
       const { token: loginToken, cookies: initialCookies } =
         await this.getLoginToken();
+
+      console.log("✅ Got login token:", loginToken.substring(0, 20) + "...");
+      console.log("🍪 Initial cookies count:", initialCookies.length);
 
       const cookieHeader = this.parseCookies(initialCookies);
 
@@ -92,6 +122,7 @@ export class AuthService {
             "User-Agent":
               "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
           },
+          httpsAgent: this.httpsAgent,
           maxRedirects: 0,
           validateStatus: (status: number) => status < 400,
         }
@@ -105,6 +136,20 @@ export class AuthService {
         "🔐 Login response headers location:",
         response.headers["location"]
       );
+      console.log("🍪 Response cookies count:", responseCookies.length);
+
+      // Check for error messages in response
+      const $login = cheerio.load(response.data);
+      const loginErrorMessage = $login(".alert-danger, .error, .loginerrors")
+        .text()
+        .trim();
+      if (loginErrorMessage) {
+        console.log("❌ SIMA error message:", loginErrorMessage);
+        return {
+          success: false,
+          error: `SIMA error: ${loginErrorMessage}`,
+        };
+      }
 
       if (response.status === 302 || response.status === 303) {
         const redirectLocation = response.headers["location"];
@@ -125,6 +170,7 @@ export class AuthService {
               "Accept-Language": "es-419,es;q=0.5",
               Referer: `${this.baseUrl}/login/index.php`,
             },
+            httpsAgent: this.httpsAgent,
             maxRedirects: 0, // Handle redirects manually to capture all cookies
             validateStatus: (status: number) =>
               status < 400 || status === 302 || status === 303,
@@ -163,6 +209,7 @@ export class AuthService {
                   "Accept-Language": "es-419,es;q=0.5",
                   Referer: redirectLocation,
                 },
+                httpsAgent: this.httpsAgent,
                 maxRedirects: 5,
                 validateStatus: (status: number) => status < 400,
               });
@@ -234,6 +281,7 @@ export class AuthService {
                   "Accept-Language": "es-419,es;q=0.5",
                   Referer: testSessionFinalUrl,
                 },
+                httpsAgent: this.httpsAgent,
                 maxRedirects: 15,
                 validateStatus: (status: number) =>
                   status < 400 || status === 302 || status === 303,
@@ -343,18 +391,29 @@ export class AuthService {
         error: "Authentication failed - invalid credentials",
       };
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.status === 302) {
-        const responseCookies = error.response.headers["set-cookie"] || [];
-        const redirectLocation = error.response.headers["location"];
+      console.error("❌ Login exception caught:", error);
 
-        if (redirectLocation && !redirectLocation.includes("/login/")) {
-          return {
-            success: true,
-            cookies: responseCookies,
-            sessionData: {
-              redirectUrl: redirectLocation,
-            },
-          };
+      if (axios.isAxiosError(error)) {
+        console.error("🌐 Axios error details:", {
+          message: error.message,
+          code: error.code,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+        });
+
+        if (error.response?.status === 302) {
+          const responseCookies = error.response.headers["set-cookie"] || [];
+          const redirectLocation = error.response.headers["location"];
+
+          if (redirectLocation && !redirectLocation.includes("/login/")) {
+            return {
+              success: true,
+              cookies: responseCookies,
+              sessionData: {
+                redirectUrl: redirectLocation,
+              },
+            };
+          }
         }
       }
 
@@ -397,6 +456,7 @@ export class AuthService {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
         },
+        httpsAgent: this.httpsAgent,
         maxRedirects: 0, // Don't follow redirects
         validateStatus: (status) =>
           status < 400 || status === 302 || status === 303,
