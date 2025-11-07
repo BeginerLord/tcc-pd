@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { coursesService } from "@/services";
 import type {
   Course,
@@ -108,36 +109,35 @@ export function useSyncCourseActivities(options?: {
     mutationKey: ["courses", "syncActivity", "single"],
     mutationFn: (courseId: string) =>
       coursesService.getCourseActivities(courseId),
-    onSuccess: (data: any) => {
-      try {
-        if (data?.data?.courseId) {
-          localStorage.setItem(
-            `activities_${data.data.courseId}`,
-            JSON.stringify(data.data)
-          );
-        }
-        if (data?.data?.courseId) {
-          queryClient.invalidateQueries({
-            queryKey: ["courses", "detail", data.data.courseId],
-          });
-        }
-        console.log(
-          "✅ Actividades sincronizadas para curso:",
-          data?.data?.courseName ?? data
-        );
-        options?.onSuccess?.(data);
-      } catch (err) {
-        console.warn("⚠️ useSyncCourseActivities onSuccess error:", err);
-      }
-    },
-    onError: (error: any) => {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Error al sincronizar actividades del curso";
-      console.error("❌ useSyncCourseActivities:", message);
-      options?.onError?.(error instanceof Error ? error : new Error(message));
-    },
+    onSuccess: async (data: any) => {
+  try {
+    const courseId = data?.data?.courseId;
+    if (!courseId) return;
+
+    console.log("✅ Sincronización completada. Obteniendo actividades...");
+
+    // Luego de sincronizar, obtener las actividades actualizadas
+    const activitiesResponse = await coursesService.getCourseActivitiesList(courseId);
+
+    if (activitiesResponse?.data) {
+      localStorage.setItem(
+        `activities_${courseId}`,
+        JSON.stringify(activitiesResponse.data)
+      );
+    }
+
+    // Refrescar cache de React Query
+    queryClient.invalidateQueries({ queryKey: ["courseActivitiesList", courseId] });
+
+    toast.success("Actividades sincronizadas correctamente", {
+      description: `${activitiesResponse?.data?.totalActivities || 0} actividades obtenidas.`,
+    });
+
+    options?.onSuccess?.(activitiesResponse);
+  } catch (err) {
+    console.error("⚠️ Error al obtener actividades luego de sincronizar:", err);
+  }
+},
   });
 
   return {
@@ -229,3 +229,13 @@ export function useCourseActivities(courseId: string) {
   };
 }
 
+/* ============================================================
+   🔹 LECTURA DE ACTIVIDADES DESDE EL BACKEND (GET)
+   ============================================================ */
+export function useCourseActivitiesList(courseId: string) {
+  return useQuery({
+    queryKey: ["courseActivitiesList", courseId],
+    queryFn: () => coursesService.getCourseActivitiesList(courseId),
+    enabled: !!courseId,
+  });
+}

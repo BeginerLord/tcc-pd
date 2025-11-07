@@ -60,7 +60,7 @@ class CoursesService {
    //Obtener actividades de un curso
   async getCourseActivities(courseId: string) {
   const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
-  const response = await simaApi.post(`/course/${courseId}/activities/sync`, {
+  const response = await simaApi.post(`/courses/${courseId}/activities/sync`, {
     cookies
   });
   return response.data;
@@ -76,6 +76,26 @@ class CoursesService {
   });
   return response.data;
 }
+
+async getCourseActivitiesList(courseId: string) {
+  const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
+  try {
+    const response = await simaApi.post(`/courses/${courseId}/activities`, { cookies });
+    return response.data;
+  } catch (error: any) {
+    // Si el backend devuelve 404,  una respuesta vacía controlada
+    if (error?.response?.status === 404) {
+      return {
+        success: false,
+        data: null,
+        message: "No hay actividades sincronizadas aún.",
+      };
+    }
+    throw error; // cualquier otro error sí se lanza
+  }
+}
+
 }
 
 export const coursesService = new CoursesService();
+

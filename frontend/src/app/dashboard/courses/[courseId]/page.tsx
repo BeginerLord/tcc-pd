@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Download, RefreshCw, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { useCourses } from "@/hooks"; // si este sí está exportado en tu barrel
-import { useSyncCourseActivities, useCourseActivities } from "@/hooks/useCourses";
+import { useCourses, useCourseActivitiesList } from "@/hooks"; 
+import { useSyncCourseActivities } from "@/hooks/useCourses";
 
 
 export default function CourseDetailsPage() {
@@ -46,7 +46,7 @@ export default function CourseDetailsPage() {
   });
 
   // Hook para leer actividades desde localStorage (o tu implementación)
-  const { data: activitiesData, isLoading, isError, error, refetch } = useCourseActivities(courseId);
+  const { data: activitiesData, isLoading, isError, error, refetch } = useCourseActivitiesList(courseId);
 
   if (!course) {
     return (

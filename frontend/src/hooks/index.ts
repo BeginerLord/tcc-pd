@@ -45,3 +45,12 @@ export {
   type UseScrapeActivitiesReturn,
   type UseScrapeAllReturn,
 } from "./useScraping";
+
+// Activities hooks (sincronización y lectura)
+export {
+  useSyncCourseActivities,
+  useSyncAllCourseActivities,
+  useCourseActivities,
+} from "./useCourses";
+
+export { useCourseActivitiesList } from "./useCourses";
