@@ -70,17 +70,15 @@ class CoursesService {
   //Obtener actividades de varios cursos
   async getMultipleCoursesActivities(courseIds: string[]) {
   const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
-  const response = await simaApi.post(`/courses/${courseIds}/activities`, {
-    cookies,
-    courseIds
+  const response = await simaApi.get(`/courses/${courseIds}/activities`, {
   });
   return response.data;
 }
 
 async getCourseActivitiesList(courseId: string) {
   const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
-  try {
-    const response = await simaApi.post(`/courses/${courseId}/activities`, { cookies });
+  try { // Primero intenta obtener actividades ya sincronizadas (GET)
+    const response = await simaApi.get(`/courses/${courseId}/activities`);
     return response.data;
   } catch (error: any) {
     // Si el backend devuelve 404,  una respuesta vacía controlada
