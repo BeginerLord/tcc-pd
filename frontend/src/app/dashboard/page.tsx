@@ -40,8 +40,8 @@ export default function DashboardPage() {
     }
 
     const handleLogout = () => {
-        // Limpiar token del sessionStorage
-        sessionStorage.removeItem("token")
+        // Limpiar token del localStorage
+        localStorage.removeItem("token")
         toast.info("Sesión cerrada", {
             description: "Has cerrado sesión correctamente",
         })

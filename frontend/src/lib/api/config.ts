@@ -16,7 +16,7 @@ simaApi.interceptors.request.use(
   (config: any) => {
     // Obtener el token directamente del sessionStorage (solo en cliente)
     if (typeof window !== "undefined") {
-      const jwt = sessionStorage.getItem("token");
+      const jwt = localStorage.getItem("token");
 
       if (jwt) {
         // Configurar el header de autorización si el token es válido
@@ -51,19 +51,19 @@ simaApi.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error("❌ Axios Response Error:", {
+    /*console.error("❌ Axios Response Error:", {
       message: error.message,
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
       url: error.config?.url,
       fullError: error,
-    });
+    });*/
 
     // Manejo especial para errores 401 (no autorizado)
     if (error.response?.status === 401 && typeof window !== "undefined") {
       // Limpiar token y redirigir al login
-      sessionStorage.removeItem("token");
+      localStorage.removeItem("token");
       // Opcional: redirigir a login
       // window.location.href = "/login";
     }

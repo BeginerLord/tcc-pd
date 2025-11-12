@@ -21,8 +21,8 @@ class AuthService {
 
     // Guardar token en sessionStorage
     if (response.data.token && typeof window !== "undefined") {
-      sessionStorage.setItem("token", response.data.token);
-      sessionStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
     }
 
     return response.data;
@@ -36,8 +36,8 @@ class AuthService {
 
     // Guardar token en sessionStorage
     if (response.data.token && typeof window !== "undefined") {
-      sessionStorage.setItem("token", response.data.token);
-      sessionStorage.setItem("user", JSON.stringify(response.data.user));
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
     }
 
     return response.data;
@@ -56,8 +56,8 @@ class AuthService {
    */
   logout(): void {
     if (typeof window !== "undefined") {
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     }
   }
 
@@ -66,7 +66,7 @@ class AuthService {
    */
   getToken(): string | null {
     if (typeof window !== "undefined") {
-      return sessionStorage.getItem("token");
+      return localStorage.getItem("token");
     }
     return null;
   }
@@ -76,7 +76,7 @@ class AuthService {
    */
   getCurrentUser(): User | null {
     if (typeof window !== "undefined") {
-      const userStr = sessionStorage.getItem("user");
+      const userStr = localStorage.getItem("user");
       if (userStr) {
         try {
           return JSON.parse(userStr);

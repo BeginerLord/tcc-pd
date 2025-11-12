@@ -64,11 +64,11 @@ export function DaySchedule({ initialDate, courseId }: DayScheduleProps) {
 
     const getActivityIcon = (type: string) => {
         const icons: Record<string, string> = {
-            assign: "📝",
+            asignar: "📝",
             quiz: "❓",
-            forum: "💬",
-            exam: "📋",
-            activity: "🎯",
+            foro: "💬",
+            examen: "📋",
+            actividad: "🎯",
             default: "📌",
         }
         return icons[type] || icons.default
@@ -76,7 +76,7 @@ export function DaySchedule({ initialDate, courseId }: DayScheduleProps) {
 
     const getActivityColor = (type: string) => {
         const colors: Record<string, string> = {
-            assign: "border-l-blue-500",
+            asignar: "border-l-blue-500",
             quiz: "border-l-purple-500",
             forum: "border-l-green-500",
             exam: "border-l-red-500",
