@@ -48,8 +48,9 @@ async function start() {
   }
 }
 
-process.on("SIGINT", async () => {
-  console.log("\n Shutting down scraping service...");
+// Graceful shutdown handler
+const gracefulShutdown = async (signal: string) => {
+  console.log(`\n Received ${signal}, shutting down scraping service...`);
   try {
     await fastify.close();
     console.log(" Scraping service shutdown complete");
@@ -58,6 +59,20 @@ process.on("SIGINT", async () => {
     console.error(" Error during shutdown:", error);
     process.exit(1);
   }
+};
+
+// Handle shutdown signals
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+
+// Handle uncaught errors
+process.on("unhandledRejection", (reason, promise) => {
+  console.error(" Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error(" Uncaught Exception:", error);
+  gracefulShutdown("UNCAUGHT_EXCEPTION");
 });
 
 start();

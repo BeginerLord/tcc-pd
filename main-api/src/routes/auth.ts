@@ -100,12 +100,22 @@ export async function authRoutes(fastify: FastifyInstance) {
         });
       }
 
+      console.log('🔐 About to call authService.login with:', { simaUsername, passwordLength: simaPassword?.length });
+
       const simaLoginResult = await authService.login({
         username: simaUsername,
         password: simaPassword
       });
 
+      console.log('📊 SIMA login result:', {
+        success: simaLoginResult.success,
+        error: simaLoginResult.error,
+        hasCookies: !!simaLoginResult.cookies,
+        cookiesCount: simaLoginResult.cookies?.length || 0
+      });
+
       if (!simaLoginResult.success) {
+        console.log('❌ SIMA authentication failed:', simaLoginResult.error);
         return reply.status(401).send({
           success: false,
           error: `SIMA authentication failed: ${simaLoginResult.error}`
