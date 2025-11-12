@@ -25,12 +25,12 @@ export function DaySchedule({ initialDate, courseId }: DayScheduleProps) {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false)
 
     const { data, isLoading, isError, error, refetch } = useScheduleDay(selectedDate, courseId)
-    
+
     // Cargar los próximos 3 días
     const nextDay1 = format(addDays(new Date(selectedDate), 1), "yyyy-MM-dd")
     const nextDay2 = format(addDays(new Date(selectedDate), 2), "yyyy-MM-dd")
     const nextDay3 = format(addDays(new Date(selectedDate), 3), "yyyy-MM-dd")
-    
+
     const { data: dataDay1 } = useScheduleDay(nextDay1, courseId)
     const { data: dataDay2 } = useScheduleDay(nextDay2, courseId)
     const { data: dataDay3 } = useScheduleDay(nextDay3, courseId)
@@ -130,7 +130,7 @@ export function DaySchedule({ initialDate, courseId }: DayScheduleProps) {
     }
 
     const activities = data?.data?.[0]?.activities || []
-    
+
     // Obtener actividades de los próximos 3 días
     const upcomingDays = [
         {
