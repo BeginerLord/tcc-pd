@@ -93,13 +93,18 @@ export class CalendarService {
         );
       }
 
-      // DEBUG: Guardar HTML para inspección
-      if (view === "day") {
-        const fs = require("fs");
-        const path = require("path");
-        const debugPath = path.join(__dirname, "../../../debug-day-view.html");
-        fs.writeFileSync(debugPath, response.data, "utf-8");
-        console.log(`🔍 DEBUG: HTML guardado en ${debugPath}`);
+      // DEBUG: Guardar HTML para inspección (opcional)
+      if (view === "day" && process.env.DEBUG_SAVE_HTML === "true") {
+        try {
+          const fs = require("fs");
+          const path = require("path");
+          // Use /tmp directory which is writable in Docker containers
+          const debugPath = path.join("/tmp", "debug-day-view.html");
+          fs.writeFileSync(debugPath, response.data, "utf-8");
+          console.log(`🔍 DEBUG: HTML guardado en ${debugPath}`);
+        } catch (error) {
+          console.warn(`⚠️ Could not save debug HTML: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
       }
 
       return this.parseCalendarHTML(response.data, view, date);

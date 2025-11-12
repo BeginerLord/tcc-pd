@@ -8,7 +8,8 @@
       "Bash(docker-compose build:*)",
       "Bash(docker-compose up:*)",
       "Bash(docker inspect:*)",
-      "Bash(docker stats:*)"
+      "Bash(docker stats:*)",
+      "Bash(docker-compose restart:*)"
     ],
     "deny": [],
     "ask": []
