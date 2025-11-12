@@ -9,7 +9,8 @@
       "Bash(docker-compose up:*)",
       "Bash(docker inspect:*)",
       "Bash(docker stats:*)",
-      "Bash(docker-compose restart:*)"
+      "Bash(docker-compose restart:*)",
+      "Bash(docker-compose ps:*)"
     ],
     "deny": [],
     "ask": []
