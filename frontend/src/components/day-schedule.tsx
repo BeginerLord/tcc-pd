@@ -25,19 +25,34 @@ export function DaySchedule({ initialDate, courseId }: DayScheduleProps) {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false)
 
     const { data, isLoading, isError, error, refetch } = useScheduleDay(selectedDate, courseId)
+    
+    // Cargar los próximos 3 días
+    const nextDay1 = format(addDays(new Date(selectedDate), 1), "yyyy-MM-dd")
+    const nextDay2 = format(addDays(new Date(selectedDate), 2), "yyyy-MM-dd")
+    const nextDay3 = format(addDays(new Date(selectedDate), 3), "yyyy-MM-dd")
+    
+    const { data: dataDay1 } = useScheduleDay(nextDay1, courseId)
+    const { data: dataDay2 } = useScheduleDay(nextDay2, courseId)
+    const { data: dataDay3 } = useScheduleDay(nextDay3, courseId)
 
     const handlePreviousDay = () => {
         const date = new Date(selectedDate)
-        setSelectedDate(format(subDays(date, 1), "yyyy-MM-dd"))
+        const newDate = format(subDays(date, 1), "yyyy-MM-dd")
+        console.log('📅 Día anterior:', newDate)
+        setSelectedDate(newDate)
     }
 
     const handleNextDay = () => {
         const date = new Date(selectedDate)
-        setSelectedDate(format(addDays(date, 1), "yyyy-MM-dd"))
+        const newDate = format(addDays(date, 1), "yyyy-MM-dd")
+        console.log('📅 Día siguiente:', newDate)
+        setSelectedDate(newDate)
     }
 
     const handleToday = () => {
-        setSelectedDate(format(new Date(), "yyyy-MM-dd"))
+        const newDate = format(new Date(), "yyyy-MM-dd")
+        console.log('📅 Hoy:', newDate)
+        setSelectedDate(newDate)
     }
 
     const handleDateSelect = (date: Date | undefined) => {
@@ -115,6 +130,25 @@ export function DaySchedule({ initialDate, courseId }: DayScheduleProps) {
     }
 
     const activities = data?.data?.[0]?.activities || []
+    
+    // Obtener actividades de los próximos 3 días
+    const upcomingDays = [
+        {
+            date: nextDay1,
+            dateDisplay: formatDateDisplay(nextDay1),
+            activities: dataDay1?.data?.[0]?.activities || []
+        },
+        {
+            date: nextDay2,
+            dateDisplay: formatDateDisplay(nextDay2),
+            activities: dataDay2?.data?.[0]?.activities || []
+        },
+        {
+            date: nextDay3,
+            dateDisplay: formatDateDisplay(nextDay3),
+            activities: dataDay3?.data?.[0]?.activities || []
+        }
+    ].filter(day => day.activities.length > 0) // Solo mostrar días con actividades
 
     return (
         <Card className="border-border/50 shadow-sm">
@@ -360,6 +394,89 @@ export function DaySchedule({ initialDate, courseId }: DayScheduleProps) {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                {/* Upcoming Days Activities */}
+                {!isLoading && !isError && upcomingDays.length > 0 && (
+                    <div className="mt-8 space-y-4">
+                        <div className="flex items-center gap-2">
+                            <div className="h-px bg-border flex-1" />
+                            <h3 className="text-sm font-medium text-muted-foreground">
+                                Próximos días
+                            </h3>
+                            <div className="h-px bg-border flex-1" />
+                        </div>
+
+                        {upcomingDays.map((day) => (
+                            <div key={day.date} className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-semibold capitalize">
+                                        {day.dateDisplay}
+                                    </h4>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSelectedDate(day.date)}
+                                        className="text-xs"
+                                    >
+                                        Ver este día
+                                    </Button>
+                                </div>
+
+                                <div className="space-y-2">
+                                    {day.activities.map((activity: Activity) => (
+                                        <div
+                                            key={activity.id}
+                                            className={`border-l-4 ${getActivityColor(activity.type)} bg-card/50 rounded-r-lg p-3 hover:shadow-md transition-shadow cursor-pointer`}
+                                            onClick={() => setSelectedDate(day.date)}
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex items-start gap-2">
+                                                        <span className="text-base mt-0.5">{getActivityIcon(activity.type)}</span>
+                                                        <div className="flex-1">
+                                                            <h5 className="font-medium text-xs leading-tight">
+                                                                {activity.title}
+                                                            </h5>
+                                                            {activity.course && (
+                                                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                                                    <BookOpen className="h-3 w-3" />
+                                                                    {parseCourseFullName(activity.course.fullname).courseName}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {activity.startTime && (
+                                                        <div className="flex items-center gap-1 text-xs text-muted-foreground ml-6">
+                                                            <Clock className="h-3 w-3" />
+                                                            <span>
+                                                                {activity.startTime}
+                                                                {activity.endTime && ` - ${activity.endTime}`}
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    {activity.activityDates?.cierre && (
+                                                        <div className="flex items-center gap-1 text-xs ml-6">
+                                                            <span className="text-muted-foreground">Cierre: </span>
+                                                            <span className="font-medium text-destructive">
+                                                                {parseSpanishDate(activity.activityDates.cierre)}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="px-2 py-0.5 rounded bg-muted text-xs font-medium capitalize">
+                                                    {activity.type}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </CardContent>
