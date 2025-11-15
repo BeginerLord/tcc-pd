@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { CoursesGrid } from "@/components/courses-grid"
 import { DaySchedule } from "@/components/day-schedule"
@@ -14,7 +13,6 @@ import { getProgramFromCourses } from "@/lib/course-utils"
 
 export default function DashboardPage() {
     const router = useRouter()
-    const [selectedCourse, setSelectedCourse] = useState<CourseInfo | null>(null)
 
     // Hook para obtener cursos
     const { data: coursesResponse, isLoading, isError, error, refetch } = useCourses()
@@ -23,7 +21,7 @@ export default function DashboardPage() {
     const { syncCoursesFn, isPending: isSyncing } = useSyncCourses({
         onSuccess: (data) => {
             toast.success("¡Sincronización exitosa!", {
-                description: `Se sincronizaron ${data.coursesCount || 0} cursos desde SIMA`,
+                description: `Se sincronizaron ${data.courses?.length || 0} cursos desde SIMA`,
             })
         },
         onError: (error) => {

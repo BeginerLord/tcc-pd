@@ -1,7 +1,6 @@
 import { simaApi } from "../config";
 import type {
   Course,
-  CourseInfo,
   GetCoursesResponse,
   SyncCoursesPayload,
   SyncCoursesResponse,

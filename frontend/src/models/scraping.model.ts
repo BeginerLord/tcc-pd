@@ -24,7 +24,7 @@ export interface CalendarEvent {
   start: string;
   end: string;
   type: string;
-  details?: any;
+  details?: Record<string, unknown>;
   location?: string;
   description?: string;
 }
@@ -46,7 +46,7 @@ export interface Activity {
 /**
  * Respuesta de scraping
  */
-export interface ScrapingResponse<T = any> {
+export interface ScrapingResponse<T = unknown> {
   success: boolean;
   data: T;
   message?: string;

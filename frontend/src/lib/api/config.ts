@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig, AxiosError } from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -13,7 +13,7 @@ export const simaApi = axios.create({
 
 // Interceptor de request para agregar el token de autenticación
 simaApi.interceptors.request.use(
-  (config: any) => {
+  (config: InternalAxiosRequestConfig) => {
     // Obtener el token directamente del sessionStorage (solo en cliente)
     if (typeof window !== "undefined") {
       const jwt = sessionStorage.getItem("token");
@@ -33,7 +33,7 @@ simaApi.interceptors.request.use(
 
     return config;
   },
-  (error: any) => {
+  (error: AxiosError) => {
     console.error("❌ Axios Request Error:", error);
     return Promise.reject(error);
   }

@@ -21,8 +21,8 @@ export function LoginForm() {
         password: "",
     })
 
-    const { loginFn, isPending, isError, error } = useLogin({
-        onSuccess: (data) => {
+    const { loginFn, isPending } = useLogin({
+        onSuccess: () => {
             toast.success("¡Inicio de sesión exitoso!", {
                 description: `Bienvenido ${credentials.username}`,
             })

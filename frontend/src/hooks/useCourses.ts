@@ -1,14 +1,11 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { coursesService } from "@/services";
 import type {
-  Course,
-  CourseInfo,
-  GetCoursesResponse,
-  SyncCoursesPayload,
+  SyncCoursesResponse,
 } from "@/models/course.model";
 
 /**
@@ -17,7 +14,7 @@ import type {
 export const coursesKeys = {
   all: ["courses"] as const,
   lists: () => [...coursesKeys.all, "list"] as const,
-  list: (filters?: any) => [...coursesKeys.lists(), { filters }] as const,
+  list: (filters?: Record<string, unknown>) => [...coursesKeys.lists(), { filters }] as const,
   details: () => [...coursesKeys.all, "detail"] as const,
   detail: (id: string) => [...coursesKeys.details(), id] as const,
   search: (query: string) => [...coursesKeys.all, "search", query] as const,
@@ -48,7 +45,7 @@ export function useCourse(courseId: string) {
  * Hook para sincronizar cursos desde SIMA.
  */
 export function useSyncCourses(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: SyncCoursesResponse) => void;
   onError?: (error: Error) => void;
 }) {
   const queryClient = useQueryClient();
@@ -62,7 +59,7 @@ export function useSyncCourses(options?: {
       console.log("✅ Cursos sincronizados:", data.courses.length, "cursos");
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -100,7 +97,7 @@ export function useSearchCourses(query: string) {
  * Hook para sincronizar actividades de un curso específico.
  */
 export function useSyncCourseActivities(options?: {
-  onSuccess?: (data?: any) => void;
+  onSuccess?: (data?: unknown) => void;
   onError?: (error: Error) => void;
 }) {
   const queryClient = useQueryClient();
@@ -109,9 +106,10 @@ export function useSyncCourseActivities(options?: {
     mutationKey: ["courses", "syncActivity", "single"],
     mutationFn: (courseId: string) =>
       coursesService.getCourseActivities(courseId),
-    onSuccess: async (data: any) => {
+    onSuccess: async (data: unknown) => {
   try {
-    const courseId = data?.data?.courseId;
+    const dataObj = data as { data?: { courseId?: string } };
+    const courseId = dataObj?.data?.courseId;
     if (!courseId) return;
 
     console.log("✅ Sincronización completada. Obteniendo actividades...");
@@ -151,14 +149,14 @@ export function useSyncCourseActivities(options?: {
  * Hook para sincronizar actividades de varios cursos a la vez.
  */
 export function useSyncAllCourseActivities(options?: {
-  onSuccess?: (data?: any) => void;
+  onSuccess?: (data?: unknown) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
     mutationKey: ["courses", "syncActivity", "multiple"],
     mutationFn: (courseIds: string[]) =>
       coursesService.getMultipleCoursesActivities(courseIds),
-    onSuccess: (data: any) => {
+    onSuccess: (data: unknown) => {
       try {
         localStorage.setItem("allCoursesActivities", JSON.stringify(data));
         console.log("✅ Actividades sincronizadas para varios cursos");
@@ -167,7 +165,7 @@ export function useSyncAllCourseActivities(options?: {
         console.warn("⚠️ useSyncAllCourseActivities onSuccess error:", err);
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -193,12 +191,12 @@ export function useSyncAllCourseActivities(options?: {
  * Hook para obtener actividades de un curso desde localStorage.
  */
 export function useCourseActivities(courseId: string) {
-  const [data, setData] = useState<any | null>(null);
+  const [data, setData] = useState<unknown | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const loadActivities = () => {
+  const loadActivities = useCallback(() => {
     try {
       const stored = localStorage.getItem(`activities_${courseId}`);
       if (stored) {
@@ -207,18 +205,18 @@ export function useCourseActivities(courseId: string) {
         setData(null);
       }
       setIsError(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error cargando actividades:", err);
-      setError(err);
+      setError(err instanceof Error ? err : new Error(String(err)));
       setIsError(true);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [courseId]);
 
   useEffect(() => {
     loadActivities();
-  }, [courseId]);
+  }, [loadActivities]);
 
   return {
     data,

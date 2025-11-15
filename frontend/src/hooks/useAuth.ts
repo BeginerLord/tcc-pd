@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { authService } from "@/services";
-import type { User, LoginCredentials, RegisterData } from "@/models/auth.model";
+import type { User, LoginCredentials, RegisterData, AuthResponse } from "@/models/auth.model";
 
 /**
  * Hook para obtener el estado de autenticación actual
@@ -56,7 +56,7 @@ export function useAuthState() {
  * loginFn({ username: "user", password: "pass" });
  */
 export function useLogin(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: AuthResponse) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -67,7 +67,7 @@ export function useLogin(options?: {
       console.log("✅ Login exitoso:", data.user.username);
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -94,7 +94,7 @@ export type UseLoginReturn = ReturnType<typeof useLogin>;
  * registerFn({ username, password, simaUsername, simaPassword });
  */
 export function useRegister(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: AuthResponse) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -104,7 +104,7 @@ export function useRegister(options?: {
       console.log("✅ Registro exitoso:", data.user.username);
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -127,7 +127,7 @@ export type UseRegisterReturn = ReturnType<typeof useRegister>;
  * Hook para manejar la validación del token.
  */
 export function useValidateToken(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: { valid: boolean; user?: User }) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -137,7 +137,7 @@ export function useValidateToken(options?: {
       console.log("✅ Token válido");
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error ? error.message : "Token inválido o expirado";
       console.error("❌ Error al validar token:", message);

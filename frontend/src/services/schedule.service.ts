@@ -2,7 +2,6 @@ import { simaApi } from "@/lib/api/config";
 import type {
   ScheduleEvent,
   ScheduleHistory,
-  ScheduleData,
   GetScheduleResponse,
   ClearCacheResponse,
 } from "@/models/schedule.model";
@@ -20,7 +19,7 @@ class ScheduleService {
     date?: string,
     courseId?: string
   ): Promise<GetScheduleResponse> {
-    const params: any = {};
+    const params: Record<string, string> = {};
     if (date) params.date = date;
     if (courseId) params.courseId = courseId;
 

@@ -3,6 +3,7 @@ import type {
   LoginCredentials,
   RegisterData,
   AuthResponse,
+  User,
 } from "@/models/auth.model";
 
 /**
@@ -43,7 +44,7 @@ export const authService = {
   /**
    * Validar token actual
    */
-  async validate(): Promise<{ valid: boolean; user?: any }> {
+  async validate(): Promise<{ valid: boolean; user?: User }> {
     const response = await simaApi.get("/auth/validate");
     return response.data;
   },

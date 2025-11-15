@@ -2,7 +2,14 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { scrapingService } from "@/services";
-import type { ScrapingCredentials } from "@/models/scraping.model";
+import type {
+  ScrapingCredentials,
+  ScrapingSession,
+  ScrapingResponse,
+  CalendarEvent,
+  Activity
+} from "@/models/scraping.model";
+import type { Course } from "@/models/course.model";
 
 /**
  * Hook para login en SIMA.
@@ -13,7 +20,7 @@ import type { ScrapingCredentials } from "@/models/scraping.model";
  * simaLoginFn({ username: "user", password: "pass" });
  */
 export function useSimaLogin(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: ScrapingSession) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -24,7 +31,7 @@ export function useSimaLogin(options?: {
       console.log("✅ Login en SIMA exitoso");
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -53,7 +60,7 @@ export type UseSimaLoginReturn = ReturnType<typeof useSimaLogin>;
  * });
  */
 export function useScrapeCourses(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: ScrapingResponse<Course[]>) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -64,7 +71,7 @@ export function useScrapeCourses(options?: {
       console.log("✅ Cursos obtenidos de SIMA:", data.data?.length || 0);
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -91,7 +98,7 @@ export type UseScrapeCoursesReturn = ReturnType<typeof useScrapeCourses>;
  * const { scrapeCalendarFn, isPending } = useScrapeCalendar();
  */
 export function useScrapeCalendar(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: ScrapingResponse<CalendarEvent[]>) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -102,7 +109,7 @@ export function useScrapeCalendar(options?: {
       console.log("✅ Calendario obtenido de SIMA");
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -129,7 +136,7 @@ export type UseScrapeCalendarReturn = ReturnType<typeof useScrapeCalendar>;
  * const { scrapeActivitiesFn, isPending } = useScrapeActivities();
  */
 export function useScrapeActivities(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: ScrapingResponse<Activity[]>) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -140,7 +147,7 @@ export function useScrapeActivities(options?: {
       console.log("✅ Actividades obtenidas de SIMA");
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message
@@ -174,7 +181,7 @@ export type UseScrapeActivitiesReturn = ReturnType<typeof useScrapeActivities>;
  * scrapeAllFn({ username: "1003027895", password: "Akaza1999$" });
  */
 export function useScrapeAll(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: { courses: Course[]; calendar: CalendarEvent[]; activities: Activity[] }) => void;
   onError?: (error: Error) => void;
 }) {
   const mutation = useMutation({
@@ -188,7 +195,7 @@ export function useScrapeAll(options?: {
       console.log("  - Actividades:", data.activities.length);
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message

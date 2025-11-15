@@ -34,8 +34,9 @@ export default function CourseDetailsPage() {
   // Hook de sincronización (devuelve syncCoursesFn según tu hook corregido)
   const { syncCoursesFn, isPending: isSyncing } = useSyncCourseActivities({
     onSuccess: (data) => {
+      const response = data as { data?: { totalActivities?: number } };
       toast.success("¡Sincronización exitosa!", {
-        description: `${data?.data?.totalActivities || 0} actividades sincronizadas.`,
+        description: `${response?.data?.totalActivities || 0} actividades sincronizadas.`,
       });
     },
     onError: (error) => {

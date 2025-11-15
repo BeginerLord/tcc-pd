@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarIcon, Clock, MapPin, BookOpen, Loader2, AlertCircle, ChevronLeft, ChevronRight, RefreshCw, ExternalLink } from "lucide-react"
 import { useScheduleDay } from "@/hooks/useSchedule"
 import type { Activity } from "@/models/schedule.model"
-import { format, addDays, subDays, isToday, parse } from "date-fns"
+import { format, addDays, subDays, isToday } from "date-fns"
 import { es } from "date-fns/locale"
 import { DayPicker } from "react-day-picker"
 import "react-day-picker/dist/style.css"

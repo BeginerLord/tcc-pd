@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { scheduleService } from "@/services";
-import type { GetScheduleResponse } from "@/models/schedule.model";
+import type { ClearCacheResponse } from "@/models/schedule.model";
 
 /**
  * Keys para las queries de horarios
@@ -98,7 +98,7 @@ export function useScheduleHistory(days: number = 7) {
  * clearCacheFn();
  */
 export function useClearScheduleCache(options?: {
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: ClearCacheResponse) => void;
   onError?: (error: Error) => void;
 }) {
   const queryClient = useQueryClient();
@@ -113,7 +113,7 @@ export function useClearScheduleCache(options?: {
       console.log("✅ Caché de horarios limpiado");
       options?.onSuccess?.(data);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message =
         error instanceof Error
           ? error.message

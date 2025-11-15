@@ -28,7 +28,7 @@ export function RegisterForm() {
     const [passwordError, setPasswordError] = useState("")
 
     const { registerFn, isPending } = useRegister({
-        onSuccess: (data) => {
+        onSuccess: () => {
             toast.success("¡Registro exitoso!", {
                 description: "Tu cuenta ha sido creada correctamente",
             })
@@ -65,6 +65,7 @@ export function RegisterForm() {
         }
 
         // Enviar solo los datos necesarios (sin confirmPassword)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { confirmPassword, ...registerData } = formData
         registerFn(registerData)
     }

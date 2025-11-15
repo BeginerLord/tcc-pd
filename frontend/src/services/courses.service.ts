@@ -1,9 +1,7 @@
 import { simaApi } from "@/lib/api/config";
 import type {
   Course,
-  CourseInfo,
   GetCoursesResponse,
-  SyncCoursesPayload,
   SyncCoursesResponse,
 } from "@/models/course.model";
 
@@ -59,9 +57,8 @@ class CoursesService {
 
    //Obtener actividades de un curso
   async getCourseActivities(courseId: string) {
-  const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
   const response = await simaApi.post(`/courses/${courseId}/activities/sync`, {
-    cookies
+    cookies: JSON.parse(sessionStorage.getItem("cookies") || "[]")
   });
   return response.data;
 }
@@ -69,20 +66,18 @@ class CoursesService {
 
   //Obtener actividades de varios cursos
   async getMultipleCoursesActivities(courseIds: string[]) {
-  const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
-  const response = await simaApi.get(`/courses/${courseIds}/activities`, {
-  });
+  const response = await simaApi.get(`/courses/${courseIds}/activities`);
   return response.data;
 }
 
 async getCourseActivitiesList(courseId: string) {
-  const cookies = JSON.parse(sessionStorage.getItem("cookies") || "[]");
   try { // Primero intenta obtener actividades ya sincronizadas (GET)
     const response = await simaApi.get(`/courses/${courseId}/activities`);
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Si el backend devuelve 404,  una respuesta vacía controlada
-    if (error?.response?.status === 404) {
+    const axiosError = error as { response?: { status?: number } };
+    if (axiosError?.response?.status === 404) {
       return {
         success: false,
         data: null,
