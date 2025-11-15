@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/providers";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/toaster";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <QueryProvider>
           {children}
-          <Toaster position="top-right" richColors closeButton />
+          <Toaster />
         </QueryProvider>
       </body>
     </html>

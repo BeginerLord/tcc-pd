@@ -3,5 +3,24 @@
   command = "npm run build"
   publish = ".next"
 
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Redirect rules for Next.js
+[[redirects]]
+  from = "/*"
+  to = "/404"
+  status = 404
+  force = false
+
+# Headers for better performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
